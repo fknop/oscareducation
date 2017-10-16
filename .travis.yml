@@ -1,7 +1,11 @@
 language: python
 install:
   - pip install pyyaml
+  - pip install -r requirements-oscar2.txt
 python:
   - "2.7"
 script:
   - python validate_exercices.py
+  - python manage.py test
+services:
+  - postgresql
