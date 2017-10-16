@@ -4,6 +4,9 @@ install:
   - pip install -r requirements-oscar2.txt
 python:
   - "2.7"
+before_script:
+  - psql -c "CREATE DATABASE oscar;" -U postgres
+  - psql -c "CREATE USER oscar WITH PASSWORD 'oscar'" -U postgres
 script:
   - python validate_exercices.py
   - python manage.py test
