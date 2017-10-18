@@ -2,6 +2,7 @@ language: python
 install:
   - pip install pyyaml
   - pip install -r requirements-oscar2.txt
+  - pip install coveralls
 python:
   - "2.7"
 before_script:
@@ -14,6 +15,9 @@ before_script:
 script:
   - python validate_exercices.py
   - python manage.py test
+  - coverage run manage.py test
+after_success:
+  coveralls
 services:
   - postgresql
 addons:
