@@ -15,7 +15,7 @@ before_script:
 script:
   - python validate_exercices.py
   - python manage.py test
-  - coverage run manage.py test
+  - coverage run --source=forum manage.py test forum
 after_success:
   coveralls
 services:
