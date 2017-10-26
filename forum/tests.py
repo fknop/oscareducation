@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.test import TestCase
 
+from promotions.models import Lesson, Stage
+from users.models import Professor
 from .models import Thread, Message
 
 
@@ -20,6 +22,59 @@ class ThreadModelTest(TestCase):
         thread.save()
 
         self.assertEquals(thread.title, "Help")
+
+    def testPrivate(self):
+        user = User(username="sender")
+        user.save()
+
+        recipient = User(username="recipient")
+        recipient.save()
+
+        thread = Thread(title="Help", author=user, recipient=recipient)
+        thread.clean()
+        thread.save()
+
+        self.assertTrue(thread.is_private())
+        self.assertFalse(thread.is_public_lesson())
+        self.assertFalse(thread.is_public_professor())
+
+
+    def testPublicProfessor(self):
+        user = User(username="sender")
+        user.save()
+
+
+        professor_user = User(username="professor")
+        professor_user.save()
+        professor = Professor(user=professor_user)
+        professor.save()
+
+        thread = Thread(title="Help", author=user, professor=professor)
+        thread.clean()
+        thread.save()
+
+        self.assertTrue(thread.is_public_professor())
+        self.assertFalse(thread.is_private())
+        self.assertFalse(thread.is_public_lesson())
+
+    def testPublicLesson(self):
+        user = User(username="sender")
+        user.save()
+
+
+        stage = Stage(level=1)
+        stage.save()
+
+        lesson = Lesson(name="Calculus", stage=stage)
+        lesson.save()
+
+        thread = Thread(title="Help", author=user, lesson=lesson)
+        thread.clean()
+        thread.save()
+
+        self.assertTrue(thread.is_public_lesson())
+        self.assertFalse(thread.is_private())
+        self.assertFalse(thread.is_public_professor())
 
     def testMessages(self):
         user = User()

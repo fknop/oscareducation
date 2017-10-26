@@ -6,35 +6,43 @@ from django.contrib.auth.models import User
 
 
 class Thread(models.Model):
-    PRIVATE = 'PRI'
-    PUBLIC_CLASS = 'PUC'
-    PUBLIC_TEACHER = 'PUT'
-    VISIBILITY_CHOICES = (
-        (PRIVATE, 'Private'),
-        (PUBLIC_CLASS, 'Public Class'),
-        (PUBLIC_TEACHER, 'Public Teacher')
-    )
 
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
-    author = models.ForeignKey(User)
+    author = models.ForeignKey(User, related_name="message_author")
     title = models.CharField(max_length=255)
-    visibility = models.CharField(max_length=3, default=PRIVATE, choices=VISIBILITY_CHOICES)
 
     skills = models.ManyToManyField("skills.Skill", blank=True)
 
+    recipient = models.ForeignKey(User, null=True, related_name="message_recipient")
+    professor = models.ForeignKey("users.Professor", null=True)
+    lesson = models.ForeignKey("promotions.Lesson", null=True)
+
     def is_private(self):
-        return self.visibility == self.PRIVATE
+        return self.recipient is not None
 
-    def is_public_class(self):
-        return self.visibility == self.PUBLIC_CLASS
+    def is_public_lesson(self):
+        return self.lesson is not None
 
-    def is_public_teacher(self):
-        return self.visibility == self.PUBLIC_TEACHER
+    def is_public_professor(self):
+        return self.professor is not None
 
     def messages(self):
         return Message.objects.filter(thread=self).order_by("created_date")
+
+    def clean(self):
+        super(Thread, self).clean()
+        if self.recipient is None and self.professor is not None and self.lesson is None:
+            return self.is_public_professor()
+
+        if self.recipient is not None and self.professor is None and self.lesson is None:
+            return self.is_private()
+
+        if self.recipient is None and self.professor is None and self.lesson is not None:
+            return self.is_public_lesson()
+
+        return False
 
 
 class MessageAttachment(models.Model):
