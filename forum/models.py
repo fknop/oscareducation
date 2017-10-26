@@ -19,16 +19,23 @@ class Thread(models.Model):
         return Message.objects.filter(thread=self).order_by("created_date")
 
 
+class MessageAttachment(models.Model):
+    name = models.CharField(max_length=255)  # The name of the uploaded file
+    file = models.FileField()
+    message = models.ForeignKey("Message")
+
+
 class Message(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
-    thread = models.ForeignKey(Thread)
+    thread = models.ForeignKey("Thread")
     parent_message = models.ForeignKey("self", null=True)
 
     content = models.TextField()
 
-    # attachments = models.ManyToManyField() TODO
+    def attachments(self):
+        return MessageAttachment.objects.filter(message=self.id)
 
     def replies(self):
         replies = []
