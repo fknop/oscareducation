@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -11,7 +12,6 @@ class Thread(models.Model):
 
     author = models.ForeignKey(User, related_name="message_author")
     title = models.CharField(max_length=255)
-
     skills = models.ManyToManyField("skills.Skill", blank=True)
 
     recipient = models.ForeignKey(User, null=True, related_name="message_recipient")
@@ -33,16 +33,16 @@ class Thread(models.Model):
     def clean(self):
         super(Thread, self).clean()
 
-        if self.is_public_professor() and not self.is_private() and not self.is_public_professor():
+        if self.is_public_professor() and not self.is_private() and not self.is_public_lesson():
             return True
 
-        if not self.is_public_professor() and self.is_private() and not self.is_public_professor():
+        if not self.is_public_professor() and self.is_private() and not self.is_public_lesson():
             return True
 
-        if not self.is_public_professor() and not self.is_private() and self.is_public_professor():
+        if not self.is_public_professor() and not self.is_private() and self.is_public_lesson():
             return True
 
-        return False
+        raise ValidationError('Thread: must be only one visibility')
 
 
 class MessageAttachment(models.Model):
