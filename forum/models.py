@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 
 
 class Thread(models.Model):
-
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
@@ -33,14 +32,15 @@ class Thread(models.Model):
 
     def clean(self):
         super(Thread, self).clean()
-        if self.recipient is None and self.professor is not None and self.lesson is None:
-            return self.is_public_professor()
 
-        if self.recipient is not None and self.professor is None and self.lesson is None:
-            return self.is_private()
+        if self.is_public_professor() and not self.is_private() and not self.is_public_professor():
+            return True
 
-        if self.recipient is None and self.professor is None and self.lesson is not None:
-            return self.is_public_lesson()
+        if not self.is_public_professor() and self.is_private() and not self.is_public_professor():
+            return True
+
+        if not self.is_public_professor() and not self.is_private() and self.is_public_professor():
+            return True
 
         return False
 
