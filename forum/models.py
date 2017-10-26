@@ -6,14 +6,32 @@ from django.contrib.auth.models import User
 
 
 class Thread(models.Model):
+    PRIVATE = 'PRI'
+    PUBLIC_CLASS = 'PUC'
+    PUBLIC_TEACHER = 'PUT'
+    VISIBILITY_CHOICES = (
+        (PRIVATE, 'Private'),
+        (PUBLIC_CLASS, 'Public Class'),
+        (PUBLIC_TEACHER, 'Public Teacher')
+    )
+
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
     author = models.ForeignKey(User)
     title = models.CharField(max_length=255)
-    private = models.BooleanField(default=True)
+    visibility = models.CharField(max_length=3, default='PRI', choices=VISIBILITY_CHOICES)
 
     skills = models.ManyToManyField("skills.Skill", blank=True)
+
+    def is_private(self):
+        return self.visibility == self.PRIVATE
+
+    def is_public_class(self):
+        return self.visibility == self.PUBLIC_CLASS
+
+    def is_public_teacher(self):
+        return self.visibility == self.PUBLIC_TEACHER
 
     def messages(self):
         return Message.objects.filter(thread=self).order_by("created_date")
