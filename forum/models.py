@@ -20,7 +20,7 @@ class Thread(models.Model):
 
     author = models.ForeignKey(User)
     title = models.CharField(max_length=255)
-    visibility = models.CharField(max_length=3, default='PRI', choices=VISIBILITY_CHOICES)
+    visibility = models.CharField(max_length=3, default=PRIVATE, choices=VISIBILITY_CHOICES)
 
     skills = models.ManyToManyField("skills.Skill", blank=True)
 
