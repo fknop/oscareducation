@@ -10,12 +10,11 @@ from django.views.decorators.http import require_POST, require_GET
 
 # Create your views here.
 from forum.models import Thread, Message
-from skills.models import Skill
 
 
 class ThreadForm(forms.Form):
     title = forms.TextInput()
-    skills = forms.MultipleChoiceField(choices=Skill.objects.all())
+    #skills = forms.MultipleChoiceField(choices=Skill.objects.all())
     content = forms.Textarea()
     visibility = forms.ChoiceField()
 
