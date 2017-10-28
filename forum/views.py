@@ -15,14 +15,14 @@ from skills.models import Skill
 
 class ThreadForm(forms.Form):
     title = forms.TextInput()
-    skills = forms.MultipleChoiceField(queryset=Skill.objects.all())
+    skills = forms.MultipleChoiceField(choices=Skill.objects.all())
     content = forms.Textarea()
     visibility = forms.ChoiceField()
 
 
 @require_GET
 def forum_dashboard(request):
-    pass
+    return HttpResponse()
 
 
 def create_thread(request):
@@ -38,10 +38,11 @@ def create_thread(request):
 
 
 def get_create_thread_page(request):
-    pass
+    return HttpResponse()
 
 
 def post_create_thread(request):
+    """
     form = ThreadForm(request.POST)
 
     if form.is_valid():
@@ -55,8 +56,9 @@ def post_create_thread(request):
             thread.save()
             original_message = Message(content=content, parent_thread=thread)
             original_message.save()
+    """
 
-    pass
+    return HttpResponse()
 
 
 def thread(request, id):
@@ -72,10 +74,11 @@ def thread(request, id):
 
 
 def get_thread(request, id):
-    pass
+    return HttpResponse()
 
 
 def reply_thread(request, id):
+    """
     message_id = request.GET.get('message_id')
 
     content = ""  # TODO: access content
@@ -85,5 +88,6 @@ def reply_thread(request, id):
     if message_id:
         parent_message = get_object_or_404(Message, pk=message_id)
         message.parent_message = parent_message
+    """
 
     return HttpResponse()

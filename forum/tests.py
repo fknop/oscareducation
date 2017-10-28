@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, Client
 
 from promotions.models import Lesson, Stage
 from users.models import Professor
@@ -38,11 +38,9 @@ class ThreadModelTest(TestCase):
         self.assertFalse(thread.is_public_lesson())
         self.assertFalse(thread.is_public_professor())
 
-
     def testPublicProfessor(self):
         user = User(username="sender")
         user.save()
-
 
         professor_user = User(username="professor")
         professor_user.save()
@@ -60,7 +58,6 @@ class ThreadModelTest(TestCase):
     def testPublicLesson(self):
         user = User(username="sender")
         user.save()
-
 
         stage = Stage(level=1)
         stage.save()
@@ -118,7 +115,6 @@ class ThreadModelTest(TestCase):
         all_replies = first_message.all_replies()
         self.assertEquals(all_replies[first_message], [{second_message: []}])
 
-
     def testAllReplies(self):
         user = User()
         user.save()
@@ -158,3 +154,42 @@ class ThreadModelTest(TestCase):
                 }
             ]
         })
+
+
+class TestGetDashboard(TestCase):
+    # TODO
+    def test_forum_dashboard(self):
+        c = Client()
+        response = c.get("/forum/")
+        self.assertEquals(response.status_code, 200)
+
+
+class TestGetThread(TestCase):
+    def test_get_thread_page(self):
+        c = Client()
+        # TODO: temporary id for temporary test
+        response = c.get('/forum/thread/1')
+        self.assertEquals(response.status_code, 200)
+
+class TestPostReply(TestCase):
+    def test_get_thread_page(self):
+        c = Client()
+        # TODO: temporary id for temporary test
+        response = c.post('/forum/thread/1')
+        self.assertEquals(response.status_code, 200)
+
+
+class TestPostThread(TestCase):
+    def test_post_thread(self):
+        c = Client()
+        # TODO: temporary id for temporary test
+        response = c.post('/forum/write/')
+        self.assertEquals(response.status_code, 200)
+
+
+class TestGetWritePage(TestCase):
+    def test_get_write_page(self):
+        c = Client()
+        # TODO: temporary id for temporary test
+        response = c.get('/forum/write/')
+        self.assertEquals(response.status_code, 200)
