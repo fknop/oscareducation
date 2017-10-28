@@ -8,7 +8,6 @@ python:
 before_script:
   - psql -c "CREATE DATABASE oscar;" -U postgres
   - psql -c "CREATE USER oscar WITH PASSWORD 'oscar' CREATEDB;" -U postgres
-  - python manage.py makemigrations
   - chmod +x makemigrations.sh
   - ./makemigrations.sh
   - python manage.py migrate
