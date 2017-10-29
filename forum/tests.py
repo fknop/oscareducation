@@ -114,7 +114,6 @@ class ThreadModelTest(TestCase):
         self.assertEquals(replies[0], second_message)
 
         all_replies = first_message.all_replies()
-
         self.assertEquals(all_replies, [second_message])
 
     def testAllReplies(self):

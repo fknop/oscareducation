@@ -16,7 +16,6 @@ from forum.models import Thread, Message
 
 class ThreadForm(forms.Form):
     title = forms.TextInput()
-    # skills = forms.MultipleChoiceField()
     content = forms.Textarea()
     visibility = forms.ChoiceField()
 
