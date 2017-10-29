@@ -69,6 +69,7 @@ class ThreadModelTest(TestCase):
         thread.clean()
         thread.save()
 
+
         self.assertTrue(thread.is_public_lesson())
         self.assertFalse(thread.is_private())
         self.assertFalse(thread.is_public_professor())
@@ -113,7 +114,8 @@ class ThreadModelTest(TestCase):
         self.assertEquals(replies[0], second_message)
 
         all_replies = first_message.all_replies()
-        self.assertEquals(all_replies[first_message], [{second_message: []}])
+
+        self.assertEquals(all_replies, [second_message])
 
     def testAllReplies(self):
         user = User()
@@ -138,22 +140,11 @@ class ThreadModelTest(TestCase):
         fifth_message.save()
 
         all_replies = first_message.all_replies()
-        self.assertEquals(all_replies, {
-            first_message: [
-                {
-                    second_message: [
-                        {
-                            fourth_message: [
-                                {fifth_message: []}
-                            ]
-                        }
-                    ]
-                },
-                {
-                    third_message: []
-                }
-            ]
-        })
+        self.assertEquals(all_replies, [second_message, [fourth_message, [fifth_message]], third_message])
+
+        message_with_replies = thread.messages_with_replies()
+        self.assertEquals(message_with_replies,
+                          [first_message, [second_message, [fourth_message, [fifth_message]], third_message]])
 
 
 class TestGetDashboard(TestCase):
@@ -165,11 +156,26 @@ class TestGetDashboard(TestCase):
 
 
 class TestGetThread(TestCase):
+    def test_get_thread_page_404(self):
+        c = Client()
+
+        # Unknown ID
+        response = c.get('/forum/thread/150')
+        self.assertEquals(response.status_code, 404)
+
     def test_get_thread_page(self):
         c = Client()
-        # TODO: temporary id for temporary test
-        response = c.get('/forum/thread/1')
+        user = User()
+        user.save()
+
+        thread = Thread(title="test", author=user)
+        thread.save()
+
+        first_message = Message(thread=thread, content="hello")
+        first_message.save()
+        response = c.get('/forum/thread/' + str(thread.id))
         self.assertEquals(response.status_code, 200)
+
 
 class TestPostReply(TestCase):
     def test_get_thread_page(self):

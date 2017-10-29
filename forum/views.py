@@ -2,10 +2,12 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.shortcuts import render, get_object_or_404
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect, HttpResponse
+from django.template.loader_tags import register
 from django.views.decorators.http import require_POST, require_GET
 
 # Create your views here.
@@ -14,7 +16,7 @@ from forum.models import Thread, Message
 
 class ThreadForm(forms.Form):
     title = forms.TextInput()
-    #skills = forms.MultipleChoiceField(choices=Skill.objects.all())
+    # skills = forms.MultipleChoiceField()
     content = forms.Textarea()
     visibility = forms.ChoiceField()
 
@@ -73,7 +75,14 @@ def thread(request, id):
 
 
 def get_thread(request, id):
-    return HttpResponse()
+    thread = get_object_or_404(Thread, pk=id)
+    messages = thread.messages()
+
+    return render(request, "forum/thread.haml", {
+        "user": request.user,
+        "thread": thread,
+        "messages": messages
+    })
 
 
 def reply_thread(request, id):
@@ -90,3 +99,43 @@ def reply_thread(request, id):
     """
 
     return HttpResponse()
+
+
+def temp(request):
+    thread = Thread(author=request.user, title='This is a test')
+    thread.save()
+    message = Message(content="Message 1", thread=thread, author=request.user)
+    message.save()
+
+    message2 = Message(content="Reply message 1", thread=thread, author=request.user, parent_message=message)
+    message3 = Message(content="Message 3", thread=thread, author=request.user)
+    message2.save()
+    message3.save()
+
+    user = User(username="AnotherUser")
+    user.save()
+    message4 = Message(content="message from another user", thread=thread, author=user)
+    message4.save()
+
+    print(thread.id)
+
+    return HttpResponse()
+
+
+@register.inclusion_tag('forum/message.haml')
+def message_partial(message, user, level=0):
+    return {
+        "message": message,
+        "level": level + 1,
+        "user": user
+    }
+
+
+@register.filter
+def reply_margin(level):
+    return (level - 1) * 20
+
+
+@register.filter
+def can_edit(user, message):
+    return message.author == user
