@@ -1,0 +1,42 @@
+-extends "base.haml"
+
+-load static
+-load student_tags
+-load lesson_tags
+-load compress
+
+-block head
+
+-block content
+  .page-header
+    %h1 Forum - {{ user }}
+
+  .container-fluid.boxclasseTitle
+    .center
+      %table.table.table-hover
+        %tr
+          %th Titre
+          %th Auteur
+          %th Compétence
+          %th Date
+
+        {% if threads %}
+        	-for thread in threads
+	          %tr
+	            %td
+	            	%a{:href => "/forum/thread/{{thread.id}}" }>{{thread.title}}
+	            %td {{thread.author}}
+	            %td {{thread.skills}}
+	            %td {{thread.modified_date}}
+        	
+	    {% else %}
+	    	%tr
+	    		%td Aucune conversation trouvée
+	    {% endif %}
+
+
+          
+
+      
+
+
