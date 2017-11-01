@@ -12,7 +12,7 @@ from .models import Thread, Message
 
 class ThreadModelTest(TestCase):
 
-    def testInvalidThread(self):
+    def test_invalid_thread_both_recipient_professor(self):
         user = User(username="sender")
         user.save()
 
@@ -29,7 +29,7 @@ class ThreadModelTest(TestCase):
         with self.assertRaises(ValidationError):
             thread.clean()
 
-    def testCreateThread(self):
+    def test_create_thread(self):
         user = User()
         user.save()
         thread = Thread(title="Help on Calculus", author=user)
@@ -42,7 +42,7 @@ class ThreadModelTest(TestCase):
 
         self.assertEquals(thread.title, "Help")
 
-    def testPrivate(self):
+    def test_private_thread(self):
         user = User(username="sender")
         user.save()
 
@@ -57,7 +57,7 @@ class ThreadModelTest(TestCase):
         self.assertFalse(thread.is_public_lesson())
         self.assertFalse(thread.is_public_professor())
 
-    def testPublicProfessor(self):
+    def test_public_professor_thread(self):
         user = User(username="sender")
         user.save()
 
@@ -74,7 +74,7 @@ class ThreadModelTest(TestCase):
         self.assertFalse(thread.is_private())
         self.assertFalse(thread.is_public_lesson())
 
-    def testPublicLesson(self):
+    def test_public_lesson_thread(self):
         user = User(username="sender")
         user.save()
 
@@ -93,7 +93,7 @@ class ThreadModelTest(TestCase):
         self.assertFalse(thread.is_private())
         self.assertFalse(thread.is_public_professor())
 
-    def testMessages(self):
+    def test_messages(self):
         user = User()
         user.save()
 
@@ -111,7 +111,7 @@ class ThreadModelTest(TestCase):
         self.assertEquals(messages[0].id, first_message.id)
         self.assertEquals(messages[1].id, second_message.id)
 
-    def testReplies(self):
+    def test_replies(self):
         user = User()
         user.save()
 
