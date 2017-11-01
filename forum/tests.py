@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.test import TestCase, Client
 
 from promotions.models import Lesson, Stage
@@ -10,6 +11,24 @@ from .models import Thread, Message
 
 
 class ThreadModelTest(TestCase):
+
+    def testInvalidThread(self):
+        user = User(username="sender")
+        user.save()
+
+        recipient = User(username="recipient")
+        recipient.save()
+
+        professor_user = User(username="professor")
+        professor_user.save()
+        professor = Professor(user=professor_user)
+        professor.save()
+
+        thread = Thread(title="Help", author=user, recipient=recipient, professor=professor)
+
+        with self.assertRaises(ValidationError):
+            thread.clean()
+
     def testCreateThread(self):
         user = User()
         user.save()
@@ -111,6 +130,10 @@ class ThreadModelTest(TestCase):
 
         replies = first_message.replies()
         self.assertEquals(replies[0], second_message)
+
+        replies_with_self = first_message.replies(include_self=True)
+        self.assertEquals(replies_with_self[0], first_message)
+        self.assertEquals(replies_with_self[1], second_message)
 
 
 class TestGetDashboard(TestCase):
