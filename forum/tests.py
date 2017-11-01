@@ -5,8 +5,9 @@ from django.contrib.auth.models import User
 from django.test import TestCase, Client
 
 from promotions.models import Lesson, Stage
-from users.models import Professor
+from users.models import Professor, Student
 from .models import Thread, Message
+from dashboard import private_threads, public_class_threads, public_teacher_threads
 
 
 class ThreadModelTest(TestCase):
@@ -157,11 +158,104 @@ class ThreadModelTest(TestCase):
 
 
 class TestGetDashboard(TestCase):
+    def setUp(self):
+        self.user = User(username="Brandon")
+        self.user.save()
+        self.second_user = User(username="Kevin")
+        self.second_user.save()
+        self.teacher_user = User(username="Vince")
+        self.teacher_user.save()
+        self.second_teacher_user = User(username="Nicolas")
+        self.second_teacher_user.save()
+
+        self.student = Student(user=self.user)
+        self.student.save()
+        self.second_student = Student(user=self.second_user)
+        self.second_student.save()
+        self.teacher = Professor(user=self.teacher_user)
+        self.teacher.save()
+        self.second_teacher = Professor(user=self.second_teacher_user)
+        self.second_teacher.save()
+
+        self.stage = Stage(id=1, name="Stage1", level=1)
+        self.stage.save()
+        self.second_stage = Stage(id=2, name="Stage2", level=1)
+        self.second_stage.save()
+
+        self.lesson = Lesson(id=1, name="English", stage_id=1)
+        self.lesson.save()
+        self.lesson.students.add(self.student)
+        self.lesson.students.add(self.second_student)
+        self.lesson.professors.add(self.teacher)
+        self.lesson.save()
+
+        self.second_lesson = Lesson(id=2, name="French", stage_id=2)
+        self.second_lesson.save()
+        self.second_lesson.students.add(self.second_student)
+        self.second_lesson.professors.add(self.teacher)
+        self.second_lesson.save()
+
+        self.thread = Thread(title="Help", author=self.user, recipient=self.second_user)
+        self.thread.save()
+
+        self.second_thread = Thread(title="Send help", author=self.second_user, lesson=self.second_lesson)
+        self.second_thread.save()
+
+        self.third_thread = Thread(title="Information regarding w/e", author=self.teacher_user, professor=self.teacher)
+        self.third_thread.save()
+
+        self.fourth_thread = Thread(title="Information regarding spam", author=self.teacher_user, professor=self.teacher)
+        self.fourth_thread.save()
+
     # TODO
     def test_forum_dashboard(self):
         c = Client()
         response = c.get("/forum/")
         self.assertEquals(response.status_code, 200)
+
+    def test_private_dashboard_empty(self):
+        user = User(username="Jimmy")
+        user.save()
+        result = private_threads(user)
+        expected = set()
+        self.assertEquals(expected, result)
+
+    def test_private_dashboard(self):
+        result = private_threads(self.user)
+        expected = set()
+        expected.add(self.thread)
+        self.assertEquals(expected, result)
+
+    def test_public_class_dashboard_empty(self):
+        user = User(username="Jimmy")
+        user.save()
+        student = Student(user=user)
+        student.save()
+        result = public_class_threads(user)
+        expected = set()
+        self.assertEquals(expected, result)
+
+    def test_public_class_dashboard(self):
+        result = public_class_threads(self.second_user)
+        expected = set()
+        expected.add(self.second_thread)
+        self.assertEquals(expected, result)
+
+    def test_public_teacher_dashboard_empty(self):
+        user = User(username="Jimmy")
+        user.save()
+        student = Student(user=user)
+        student.save()
+        result = public_teacher_threads(user)
+        expected = set()
+        self.assertEquals(expected, result)
+
+    def test_public_class_dashboard(self):
+        result = public_teacher_threads(self.second_user)
+        expected = set()
+        expected.add(self.third_thread)
+        expected.add(self.fourth_thread)
+        self.assertEquals(expected, result)
 
 
 class TestGetThread(TestCase):
@@ -170,6 +264,7 @@ class TestGetThread(TestCase):
         # TODO: temporary id for temporary test
         response = c.get('/forum/thread/1')
         self.assertEquals(response.status_code, 200)
+
 
 class TestPostReply(TestCase):
     def test_get_thread_page(self):
