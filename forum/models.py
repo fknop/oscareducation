@@ -7,14 +7,14 @@ from django.contrib.auth.models import User
 
 
 class Thread(models.Model):
-    created_date = models.DateTimeField(auto_now_add=True)
+    created_date = models.DateTimeField(auto_now_add=True, db_index=True)
     modified_date = models.DateTimeField(auto_now=True)
 
-    author = models.ForeignKey(User, related_name="message_author")
+    author = models.ForeignKey(User, related_name="thread_author")
     title = models.CharField(max_length=255)
     skills = models.ManyToManyField("skills.Skill", blank=True)
 
-    recipient = models.ForeignKey(User, null=True, related_name="message_recipient")
+    recipient = models.ForeignKey(User, null=True, related_name="thread_recipient")
     professor = models.ForeignKey("users.Professor", null=True)
     lesson = models.ForeignKey("promotions.Lesson", null=True)
 
@@ -28,7 +28,8 @@ class Thread(models.Model):
         return self.professor is not None
 
     def messages(self):
-        return Message.objects.filter(thread=self).order_by("created_date")
+        return Message.objects.select_related('author').filter(thread=self, parent_message=None).order_by(
+            "created_date")
 
     def clean(self):
         super(Thread, self).clean()
@@ -55,24 +56,24 @@ class Message(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
+    author = models.ForeignKey(User, related_name="message_author")
     thread = models.ForeignKey("Thread")
     parent_message = models.ForeignKey("self", null=True)
 
     content = models.TextField()
 
+    class Meta:
+        ordering = ['created_date']
+
     def attachments(self):
         return MessageAttachment.objects.filter(message=self.id)
 
-    def replies(self):
+    def replies(self, include_self=False):
         replies = []
-        for message in Message.objects.filter(parent_message=self):
+        if include_self:
+            replies.append(self)
+
+        for message in Message.objects.filter(thread=self.thread, parent_message=self).order_by('created_date'):
             replies.append(message)
-
-        return replies
-
-    def all_replies(self):
-        replies = {self: []}
-        for message in Message.objects.filter(parent_message=self).order_by("created_date"):
-            replies[self].append(message.all_replies())
 
         return replies

@@ -2,9 +2,8 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.db import transaction
+from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404
-from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.http import require_POST, require_GET
 
@@ -14,7 +13,6 @@ from forum.models import Thread, Message
 
 class ThreadForm(forms.Form):
     title = forms.TextInput()
-    #skills = forms.MultipleChoiceField(choices=Skill.objects.all())
     content = forms.Textarea()
     visibility = forms.ChoiceField()
 
@@ -73,7 +71,14 @@ def thread(request, id):
 
 
 def get_thread(request, id):
-    return HttpResponse()
+    thread = get_object_or_404(Thread, pk=id)
+    messages = thread.messages()
+
+    return render(request, "forum/thread.haml", {
+        "user": request.user,
+        "thread": thread,
+        "messages": messages
+    })
 
 
 def reply_thread(request, id):
@@ -90,3 +95,4 @@ def reply_thread(request, id):
     """
 
     return HttpResponse()
+

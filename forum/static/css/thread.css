@@ -1,0 +1,29 @@
+.message .panel-heading, .message .panel-footer {
+    display: flex;
+    flex-direction: row;
+}
+
+
+.reply-btn, .edit-btn {
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex.column {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-spacer {
+    flex: 1;
+}
+
+.reply-block textarea {
+    resize: vertical;
+    height: 150px;
+    margin-bottom: 10px;
+}

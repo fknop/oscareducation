@@ -1,0 +1,24 @@
+-extends "base.haml"
+-load static
+-load compress
+-load forum_tags
+
+-block head
+  -compress css
+    %link{rel: "stylesheet", href: "{% static 'css/thread.css' %}" }
+
+-block content
+  .page-header
+    %h1= thread.title
+      - for skill in thread.skills.all
+        %small= skill.id
+
+  .messages
+    - for message in messages
+      {% message_partial message user 0 %}
+
+  .reply-block
+    %textarea.form-control
+    .flex
+      .flex-spacer
+      %button.btn.btn-primary.btn-lg{:type => "submit"} Reply

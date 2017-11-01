@@ -1,0 +1,14 @@
+.panel.panel-default.message{:style => "margin-left: {{level|reply_margin}}px"}
+  .panel-heading
+    %span{:class => "message-author"}= message.author.username
+    %span.flex-spacer
+    %span{:class => "message-date"}= message.created_date
+  .panel-body{:class => "message-content"}= message.content
+  .panel-footer
+    %span.flex-spacer
+    -if user|can_edit:message
+      %i.fa.fa-edit.edit-btn
+    %i.fa.fa-reply.reply-btn
+
+- for reply in message.replies
+  {% message_partial reply user level %}

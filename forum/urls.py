@@ -9,7 +9,7 @@ from . import views
 urlpatterns = [
     url(r'^$', views.forum_dashboard, name='forum_dashboard'),
     url(r'^write/', views.create_thread, name='forum_write'),
-    url(r'^thread/(?P<id>\d+)', views.thread, name='view_thread'),
+    url(r'^thread/(?P<id>\d+)', views.thread, name='view_thread')
 ]
 
 
