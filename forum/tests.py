@@ -81,10 +81,10 @@ class ThreadModelTest(TestCase):
         thread = Thread(title="test", author=user)
         thread.save()
 
-        first_message = Message(thread=thread, content="hello")
+        first_message = Message(author=user, thread=thread, content="hello")
         first_message.save()
 
-        second_message = Message(thread=thread, content="hello as well")
+        second_message = Message(author=user, thread=thread, content="hello as well")
         second_message.save()
 
         messages = thread.messages()
@@ -99,51 +99,18 @@ class ThreadModelTest(TestCase):
         thread = Thread(title="test", author=user)
         thread.save()
 
-        first_message = Message(thread=thread, content="hello")
+        first_message = Message(author=user, thread=thread, content="hello")
         first_message.save()
 
-        second_message = Message(thread=thread, content="hello as well", parent_message=first_message)
+        second_message = Message(author=user, thread=thread, content="hello as well", parent_message=first_message)
         second_message.save()
 
         messages = thread.messages()
 
-        self.assertEquals(messages[0].id, first_message.id)
-        self.assertEquals(messages[1].id, second_message.id)
+        self.assertEquals(messages[0], first_message)
 
         replies = first_message.replies()
         self.assertEquals(replies[0], second_message)
-
-        all_replies = first_message.all_replies()
-        self.assertEquals(all_replies, [second_message])
-
-    def testAllReplies(self):
-        user = User()
-        user.save()
-
-        thread = Thread(title="test", author=user)
-        thread.save()
-
-        first_message = Message(thread=thread, content="hello")
-        first_message.save()
-
-        second_message = Message(thread=thread, content="hello as well", parent_message=first_message)
-        second_message.save()
-
-        third_message = Message(thread=thread, content="test", parent_message=first_message)
-        third_message.save()
-
-        fourth_message = Message(thread=thread, content="test", parent_message=second_message)
-        fourth_message.save()
-
-        fifth_message = Message(thread=thread, content="test", parent_message=fourth_message)
-        fifth_message.save()
-
-        all_replies = first_message.all_replies()
-        self.assertEquals(all_replies, [second_message, [fourth_message, [fifth_message]], third_message])
-
-        message_with_replies = thread.messages_with_replies()
-        self.assertEquals(message_with_replies,
-                          [first_message, [second_message, [fourth_message, [fifth_message]], third_message]])
 
 
 class TestGetDashboard(TestCase):
@@ -170,7 +137,7 @@ class TestGetThread(TestCase):
         thread = Thread(title="test", author=user)
         thread.save()
 
-        first_message = Message(thread=thread, content="hello")
+        first_message = Message(author=user, thread=thread, content="hello")
         first_message.save()
         response = c.get('/forum/thread/' + str(thread.id))
         self.assertEquals(response.status_code, 200)

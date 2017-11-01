@@ -30,15 +30,6 @@ class Thread(models.Model):
     def messages(self):
         return Message.objects.select_related('author').filter(thread=self, parent_message=None).order_by("created_date")
 
-    def messages_with_replies(self):
-        messages = []
-        for message in Message.objects.select_related('author').filter(thread=self, parent_message=None).order_by('created_date'):
-            messages.append(message)
-            replies = message.all_replies()
-            if len(replies) > 0:
-                messages.append(message.all_replies())
-
-        return messages
 
     def clean(self):
         super(Thread, self).clean()
@@ -87,13 +78,3 @@ class Message(models.Model):
 
         return replies
 
-    def all_replies(self):
-        replies = []
-
-        for message in Message.objects.filter(thread=self.thread, parent_message=self).order_by('created_date'):
-            replies.append(message)
-            all_replies = message.all_replies()
-            if len(all_replies) > 0:
-                replies.append(all_replies)
-
-        return replies
