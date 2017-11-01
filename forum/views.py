@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.contrib.auth.models import User
-from django.db import transaction
 from django.shortcuts import render, get_object_or_404
-from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect, HttpResponse
-from django.template.loader_tags import register
 from django.views.decorators.http import require_POST, require_GET
 
 # Create your views here.
@@ -121,20 +118,3 @@ def temp(request):
     return HttpResponse()
 
 
-@register.inclusion_tag('forum/message.haml')
-def message_partial(message, user, level=0):
-    return {
-        "message": message,
-        "level": level + 1,
-        "user": user
-    }
-
-
-@register.filter
-def reply_margin(level):
-    return (level - 1) * 20
-
-
-@register.filter
-def can_edit(user, message):
-    return message.author == user

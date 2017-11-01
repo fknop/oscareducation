@@ -140,6 +140,9 @@ class TestGetThread(TestCase):
         first_message = Message(author=user, thread=thread, content="hello")
         first_message.save()
         response = c.get('/forum/thread/' + str(thread.id))
+        context = response.context
+        self.assertEquals(context["thread"], thread)
+        self.assertEquals(context["messages"][0], thread.messages()[0])
         self.assertEquals(response.status_code, 200)
 
 

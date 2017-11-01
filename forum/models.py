@@ -28,8 +28,8 @@ class Thread(models.Model):
         return self.professor is not None
 
     def messages(self):
-        return Message.objects.select_related('author').filter(thread=self, parent_message=None).order_by("created_date")
-
+        return Message.objects.select_related('author').filter(thread=self, parent_message=None).order_by(
+            "created_date")
 
     def clean(self):
         super(Thread, self).clean()
@@ -77,4 +77,3 @@ class Message(models.Model):
             replies.append(message)
 
         return replies
-
