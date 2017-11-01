@@ -96,25 +96,3 @@ def reply_thread(request, id):
 
     return HttpResponse()
 
-
-def temp(request):
-    thread = Thread(author=request.user, title='This is a test')
-    thread.save()
-    message = Message(content="Message 1", thread=thread, author=request.user)
-    message.save()
-
-    message2 = Message(content="Reply message 1", thread=thread, author=request.user, parent_message=message)
-    message3 = Message(content="Message 3", thread=thread, author=request.user)
-    message2.save()
-    message3.save()
-
-    user = User(username="AnotherUser")
-    user.save()
-    message4 = Message(content="message from another user", thread=thread, author=user)
-    message4.save()
-
-    print(thread.id)
-
-    return HttpResponse()
-
-
