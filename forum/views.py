@@ -35,15 +35,12 @@ def create_thread(request):
 
 
 def get_create_thread_page(request):
-    return render(request, "forum/new_thread.haml", {
-        "po": "doobie",
-        "go": "oh oui",
-        "to": "drogo"
-    })
+    return render(request, "forum/new_thread.haml")
 
 
 
 def post_create_thread(request):
+
     """
     form = ThreadForm(request.POST)
 
@@ -59,8 +56,8 @@ def post_create_thread(request):
             original_message = Message(content=content, parent_thread=thread)
             original_message.save()
     """
-
-    return HttpResponse()
+    print form
+    return render(request, "forum/new_thread.haml")
 
 
 def thread(request, id):

@@ -1,0 +1,32 @@
+-extends "base.haml"
+-load static
+-load compress
+
+-block head
+  -compress css
+    %link{rel: "stylesheet", href: "{% static 'css/new_thread.css' %}" }
+
+-block content
+  .panel.panel-primary#main-panel
+    .panel-heading.carot
+      %span.glyphicon.glyphicon-plus
+      Créer un nouveau Sujet
+    .panel-body
+      %form{:action => '/forum/write/', :method => 'post'} {% csrf_token %}
+        %label{:for => 'title'} Titre
+        %input.form-control#title-tf{:type => 'text', :name => 'title', :aria-describedby => 'basic-addon3'}
+
+        %label{:for => 'content'} Message
+        %textarea.form-control#content{:rows => '8', :name => 'content'}
+
+
+
+        -# %span.radio
+              %label
+                %input{:type => 'radio', :name => 'optradio'} Public
+           %span.radio
+              %label
+                %input{:type => 'radio', :name => 'optradio'} Privé
+
+        .pull-right
+          %button.btn.btn-lg.pull-right.carot#validb{:type => 'submit', :value => 'Submit'} Valider
