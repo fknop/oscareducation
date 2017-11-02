@@ -18,7 +18,9 @@
       {% message_partial message user 0 %}
 
   .reply-block
-    %textarea.form-control
-    .flex
-      .flex-spacer
-      %button.btn.btn-primary.btn-lg{:type => "submit"} Reply
+    %form{:action =>'' , :method => 'post'} {% csrf_token %}
+      %textarea.form-control#content{:name => 'content'}
+      .flex
+        .flex-spacer
+        %button.btn.btn-primary.btn-lg#btn{:type => "submit"} Reply
+
