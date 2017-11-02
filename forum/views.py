@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.contrib.auth.models import User
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.http import require_POST, require_GET
 
@@ -20,11 +20,7 @@ class ThreadForm(forms.Form):
 class MessageReplyForm(forms.ModelForm):
     class Meta:
         model = Message
-<<<<<<< HEAD
         fields = ('content',)
-=======
-        fields = {'content'}
->>>>>>> 38baca69d5127e530bb3f0f8ba3444e32614dd59
 
 
 
@@ -96,7 +92,7 @@ def get_thread(request, id):
     })
 
 
-def reply_thread(request, message_id):
+def reply_thread(request, id):
     """
     message_id = request.GET.get('message_id')
 
@@ -117,5 +113,5 @@ def reply_thread(request, message_id):
         message = Message.objects.create(content=content, thread=thread, author=author)
         message.save()
 
-    return HttpResponse()
+    return redirect(thread)
 

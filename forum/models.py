@@ -44,6 +44,9 @@ class Thread(models.Model):
             return True
 
         raise ValidationError('Thread: must be only one visibility')
+    
+    def get_absolute_url(self):
+        return "/forum/thread/{}".format(self.id)
 
 
 class MessageAttachment(models.Model):
