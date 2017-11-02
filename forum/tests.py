@@ -3,8 +3,9 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.test import TestCase, Client
+from django.test import TestCase, Client, RequestFactory
 
+from forum.views import forum_dashboard
 from promotions.models import Lesson, Stage
 from users.models import Professor, Student
 from .models import Thread, Message
@@ -189,8 +190,10 @@ class TestGetDashboard(TestCase):
 
     # TODO
     def test_forum_dashboard(self):
-        c = Client()
-        response = c.get("/forum/")
+        factory = RequestFactory()
+        request = factory.get("/forum/")
+        request.user = self.user
+        response = forum_dashboard(request)
         self.assertEquals(response.status_code, 200)
 
     def test_private_dashboard_empty(self):

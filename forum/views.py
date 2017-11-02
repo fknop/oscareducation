@@ -21,10 +21,11 @@ class ThreadForm(forms.Form):
 @require_GET
 def forum_dashboard(request):
     threads = get_thread_set(request.user)
-    return render(request, "forum/forum_dashboard.haml", {
+    return render(request, "forum/dashboard.haml", {
         "user": request.user,
         "threads": threads
     })
+
 
 def create_thread(request):
     """
