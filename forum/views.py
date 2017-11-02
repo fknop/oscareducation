@@ -56,8 +56,8 @@ def post_create_thread(request):
             original_message = Message(content=content, parent_thread=thread)
             original_message.save()
     """
-    print form
-    return render(request, "forum/new_thread.haml")
+
+    return HttpResponse()
 
 
 def thread(request, id):
