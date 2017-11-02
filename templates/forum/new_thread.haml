@@ -12,6 +12,12 @@
       %span.glyphicon.glyphicon-plus
       Créer un nouveau Sujet
     .panel-body
+
+      - for err in errors
+          .alert.alert-danger{ :role => 'alert'}
+            %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+            %span Erreur: #{err}
+
       %form{:action => '/forum/write/', :method => 'post'} {% csrf_token %}
 
         %div
@@ -59,6 +65,8 @@
             $(visibdatalabel).text("Classe")
         }
       }
+
+      changeLab()
 
       $("#radiobtns").click(function() {
         changeLab()

@@ -33,7 +33,39 @@ def create_thread(request):
 
 
 def get_create_thread_page(request):
-    return render(request, "forum/new_thread.haml")
+    return render(request, "forum/new_thread.haml", { 'errors' : []})
+
+def post_create_thread(request):
+
+    errors = []
+    params = deepValidateAndFetch(request, errors)
+
+    if len(errors) == 0:
+
+        with transaction.atomic():
+
+            thread = Thread(title=params['title'], author=params['author'])
+
+            if params['visibility'] == 'private':
+                thread.recipient = params['recipient']
+
+            if params['visibility'] == 'class':
+                thread.lesson = params['lesson']
+
+            if params['visibility'] == 'public':
+                thread.professor = params['professor']
+
+            thread.save()
+            thread.skills = params['skills']
+            thread.save()
+
+            original_message = Message(content=params['content'], thread=thread, author=params['author'])
+            original_message.save()
+
+        return redirect('/forum/thread/' + str(thread.id))
+
+    else:
+        return render(request, "forum/new_thread.haml", { "errors" : errors })
 
 class ThreadForm(forms.Form):
     title = forms.CharField()
@@ -41,43 +73,68 @@ class ThreadForm(forms.Form):
     skills = forms.CharField()
     content = forms.CharField()
 
-def post_create_thread(request):
+def deepValidateAndFetch(request, errors):
 
+    params = {}
     form = ThreadForm(request.POST)
 
-    if form.is_valid():
+    form.is_valid()
 
-        title = form.cleaned_data['title']
-        visibility = request.POST.get('visibility')
-        visibdata = form.cleaned_data['visibdata']
-        skills = form.cleaned_data['skills'].encode('utf8').split(" ")
-        content = form.cleaned_data['content']
-        author = User.objects.get(pk=request.user.id)
+    params['visibility'] = request.POST.get('visibility')
 
-        with transaction.atomic():
+    try:
+        params['skills'] = form.cleaned_data['skills']
+    except:
+        params['skills'] = ""
 
-            thread = Thread(title=title, author=author)
+    try:
+        params['title'] = form.cleaned_data['title']
+    except:
+        errors.append("Le titre du sujet ne peut pas être vide")
 
-            if visibility == 'private':
-                thread.recipient = User.objects.get(pk=visibdata)
+    try:
+        params['visibdata'] = form.cleaned_data['visibdata']
+    except:
+        errors.append("Le paramètre de visibilité ne peut pas être vide")
 
-            if visibility == 'class':
-                thread.lesson = Lesson.objects.get(pk=visibdata)
+    try:
+        params['content'] = form.cleaned_data['content']
+    except:
+        errors.append("Le premier message du sujet ne peut pas être vide")
 
-            if visibility == 'public':
-                thread.professor = Professor.objects.get(pk=visibdata)
+    try:
+        params['author'] = User.objects.get(pk=request.user.id)
+    except:
+        errors.append("Unknown author")
 
-            thread.save()
-            thread.skills = Skill.objects.filter(pk__in=skills)
-            thread.save()
+    if params['visibility'] not in ["private", "class", "public"]:
+        errors.append("Type de visibilité invalide")
 
-            original_message = Message(content=content, thread=thread, author=author)
-            original_message.save()
+    if params['visibility'] == "private":
+        try:
+            params['recipient'] = User.objects.get(pk=params['visibdata'])
+        except:
+            errors.append("Destinataire inconnu")
 
-        return redirect('/forum/thread/' + str(thread.id))
+    if params['visibility'] == "class":
+        try:
+            params['lesson'] = Lesson.objects.get(pk=params['visibdata'])
+        except:
+            errors.append("Classe inconnue")
 
-    else:
-        return redirect('/forum/write')
+    if params['visibility'] == "public":
+        try:
+            params['professor'] =  Professor.objects.get(pk=params['visibdata'])
+        except:
+            errors.append("Professeur inconnu")
+
+    if params['skills'] != "":
+        try:
+            params['skills'] = Skill.objects.filter(pk__in=params['skills'].encode('utf8').split(" "))
+        except:
+            errors.append("Compétence(s) inconnue(s) ou mal formée(s) (format: id1 id2 ...)")
+
+    return params
 
 
 def thread(request, id):
