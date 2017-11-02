@@ -13,16 +13,19 @@
       Créer un nouveau Sujet
     .panel-body
 
-      - for err in errors
-          .alert.alert-danger{ :role => 'alert'}
-            %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
-            %span Erreur: #{err}
-
       %form{:action => '/forum/write/', :method => 'post'} {% csrf_token %}
+
+
 
         %div
           %label{:for => 'title'} Titre
-          %input.form-control#title-tf{:type => 'text', :name => 'title', :aria-describedby => 'basic-addon3'}
+          - for err in errors
+            {% if err.field == 'title' %}
+                  .alert.alert-danger{ :role => 'alert'}
+                    %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+                    %span Erreur: #{err.msg}
+            {% endif %}
+          %input.form-control#title-tf{:type => 'text', :name => 'title', :value => "#{data.title}" }
 
           #radiobtns
             %span.radio
@@ -37,16 +40,34 @@
 
           %div#visibdata
             %label#visibdatalabel{:for => 'visibdata'} Destinataire
-            %input.form-control{:type => 'text', :name => 'visibdata', :aria-describedby => 'basic-addon3'}
+            - for err in errors
+              {% if err.field == 'visibdata' %}
+                    .alert.alert-danger{ :role => 'alert'}
+                      %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+                      %span Erreur: #{err.msg}
+              {% endif %}
+            %input.form-control{:type => 'text', :name => 'visibdata', :value => "#{data.visibdata}"}
 
 
           %div
             %label{:for => 'skills'} Compétences
-            %input.form-control#skills-tf{:type => 'text', :name => 'skills', :aria-describedby => 'basic-addon3'}
+            - for err in errors
+              {% if err.field == 'skills' %}
+                    .alert.alert-danger{ :role => 'alert'}
+                      %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+                      %span Erreur: #{err.msg}
+              {% endif %}
+            %input.form-control#skills-tf{:type => 'text', :name => 'skills', :value => "#{data.skills}"}
 
           %div
             %label{:for => 'content'} Message
-            %textarea.form-control#content{:rows => '8', :name => 'content'}
+            - for err in errors
+              {% if err.field == 'content' %}
+                    .alert.alert-danger{ :role => 'alert'}
+                      %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+                      %span Erreur: #{err.msg}
+              {% endif %}
+            %textarea.form-control#content{:rows => '8', :name => 'content'} #{data.content}
 
           .pull-right
             %button.btn.btn-lg.pull-right.carot#validb{:type => 'submit', :value => 'Submit'} Valider

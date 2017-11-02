@@ -33,7 +33,13 @@ def create_thread(request):
 
 
 def get_create_thread_page(request):
-    return render(request, "forum/new_thread.haml", { 'errors' : []})
+    return render(request, "forum/new_thread.haml", { 'errors' : [], "data": {
+            'title' : "",
+            'visibility': "private",
+            'visibdata' : "",
+            'skills' : "",
+            'content' : ""
+        } })
 
 def post_create_thread(request):
 
@@ -65,7 +71,7 @@ def post_create_thread(request):
         return redirect('/forum/thread/' + str(thread.id))
 
     else:
-        return render(request, "forum/new_thread.haml", { "errors" : errors })
+        return render(request, "forum/new_thread.haml", { "errors" : errors, "data": params })
 
 class ThreadForm(forms.Form):
     title = forms.CharField()
@@ -90,49 +96,54 @@ def deepValidateAndFetch(request, errors):
     try:
         params['title'] = form.cleaned_data['title']
     except:
-        errors.append("Le titre du sujet ne peut pas être vide")
+        params['title'] = ""
+        errors.append({ "field": "title", "msg" :"Le titre du sujet ne peut pas être vide"})
 
     try:
         params['visibdata'] = form.cleaned_data['visibdata']
     except:
-        errors.append("Le paramètre de visibilité ne peut pas être vide")
+        params['visibdata'] = ""
+        errors.append({ "field": "visibdata", "msg" :"Le paramètre de visibilité ne peut pas être vide"})
 
     try:
         params['content'] = form.cleaned_data['content']
     except:
-        errors.append("Le premier message du sujet ne peut pas être vide")
+        params['content'] = ""
+        errors.append({ "field": "content", "msg" :"Le premier message du sujet ne peut pas être vide"})
 
     try:
         params['author'] = User.objects.get(pk=request.user.id)
     except:
-        errors.append("Unknown author")
+        errors.append({ "field": "visibdata", "msg" :"Auteur inconnu"})
 
     if params['visibility'] not in ["private", "class", "public"]:
-        errors.append("Type de visibilité invalide")
+        errors.append({ "field": "visibility", "msg" :"Type de visibilité invalide"})
 
-    if params['visibility'] == "private":
-        try:
-            params['recipient'] = User.objects.get(pk=params['visibdata'])
-        except:
-            errors.append("Destinataire inconnu")
+    if params['visibdata'] != "":
 
-    if params['visibility'] == "class":
-        try:
-            params['lesson'] = Lesson.objects.get(pk=params['visibdata'])
-        except:
-            errors.append("Classe inconnue")
+        if params['visibility'] == "private":
+            try:
+                params['recipient'] = User.objects.get(pk=params['visibdata'])
+            except:
+                errors.append({ "field": "visibdata", "msg" :"Destinataire inconnu"})
 
-    if params['visibility'] == "public":
-        try:
-            params['professor'] =  Professor.objects.get(pk=params['visibdata'])
-        except:
-            errors.append("Professeur inconnu")
+        if params['visibility'] == "class":
+            try:
+                params['lesson'] = Lesson.objects.get(pk=params['visibdata'])
+            except:
+                errors.append({ "field": "visibdata", "msg" :"Classe inconnue"})
+
+        if params['visibility'] == "public":
+            try:
+                params['professor'] =  Professor.objects.get(pk=params['visibdata'])
+            except:
+                errors.append({ "field": "visibdata", "msg" :"Professeur inconnu"})
 
     if params['skills'] != "":
         try:
             params['skills'] = Skill.objects.filter(pk__in=params['skills'].encode('utf8').split(" "))
         except:
-            errors.append("Compétence(s) inconnue(s) ou mal formée(s) (format: id1 id2 ...)")
+            errors.append({ "field": "skills", "msg" :"Compétence(s) inconnue(s) ou mal formée(s) (format: id1 id2 ...)"})
 
     return params
 
