@@ -35,7 +35,12 @@ def create_thread(request):
 
 
 def get_create_thread_page(request):
-    return HttpResponse()
+    return render(request, "forum/new_thread.haml", {
+        "po": "doobie",
+        "go": "oh oui",
+        "to": "drogo"
+    })
+
 
 
 def post_create_thread(request):
@@ -95,4 +100,3 @@ def reply_thread(request, id):
     """
 
     return HttpResponse()
-
