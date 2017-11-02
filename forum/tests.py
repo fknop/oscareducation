@@ -8,7 +8,7 @@ from django.test import TestCase, Client
 from promotions.models import Lesson, Stage
 from users.models import Professor
 from .models import Thread, Message
-
+from .views import deepValidateAndFetch
 
 class ThreadModelTest(TestCase):
 
@@ -135,7 +135,6 @@ class ThreadModelTest(TestCase):
         self.assertEquals(replies_with_self[0], first_message)
         self.assertEquals(replies_with_self[1], second_message)
 
-
 class TestGetDashboard(TestCase):
     # TODO
     def test_forum_dashboard(self):
@@ -188,6 +187,5 @@ class TestPostThread(TestCase):
 class TestGetWritePage(TestCase):
     def test_get_write_page(self):
         c = Client()
-        # TODO: temporary id for temporary test
         response = c.get('/forum/write/')
         self.assertEquals(response.status_code, 200)
