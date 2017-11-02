@@ -14,51 +14,53 @@
     .panel-body
       %form{:action => '/forum/write/', :method => 'post'} {% csrf_token %}
 
-      %div
-        %label{:for => 'title'} Titre
-        %input.form-control#title-tf{:type => 'text', :name => 'title', :aria-describedby => 'basic-addon3'}
-
-        #radiobtns
-          %span.radio
-              %label
-                  %input#pvt-vis{:type => 'radio', :name => 'visibility', :checked => ''} Privé
-          %span.radio
-              %label
-                  %input#class-vis{:type => 'radio', :name => 'visibility'} Classe
-          %span.radio
-              %label
-                  %input#public-vis{:type => 'radio', :name => 'visibility'} Public
-
-        %div#visibdata
-          %label#visibdatalabel{:for => 'visibdata'} Destinataire
-          %input.form-control{:type => 'text', :name => 'visibdata', :aria-describedby => 'basic-addon3'}
-
-
         %div
-          %label{:for => 'skills'} Compétences
-          %input.form-control#skills-tf{:type => 'text', :name => 'skills', :aria-describedby => 'basic-addon3'}
+          %label{:for => 'title'} Titre
+          %input.form-control#title-tf{:type => 'text', :name => 'title', :aria-describedby => 'basic-addon3'}
 
-        %div
-          %label{:for => 'content'} Message
-          %textarea.form-control#content{:rows => '8', :name => 'content'}
+          #radiobtns
+            %span.radio
+                %label
+                    %input#pvt-vis{:type => 'radio', :name => 'visibility', :value => 'private', :checked => ''} Privé
+            %span.radio
+                %label
+                    %input#class-vis{:type => 'radio', :value => 'class', :name => 'visibility'} Classe
+            %span.radio
+                %label
+                    %input#public-vis{:type => 'radio', :value => 'public', :name => 'visibility'} Public
 
-        .pull-right
-          %button.btn.btn-lg.pull-right.carot#validb{:type => 'submit', :value => 'Submit'} Valider
+          %div#visibdata
+            %label#visibdatalabel{:for => 'visibdata'} Destinataire
+            %input.form-control{:type => 'text', :name => 'visibdata', :aria-describedby => 'basic-addon3'}
+
+
+          %div
+            %label{:for => 'skills'} Compétences
+            %input.form-control#skills-tf{:type => 'text', :name => 'skills', :aria-describedby => 'basic-addon3'}
+
+          %div
+            %label{:for => 'content'} Message
+            %textarea.form-control#content{:rows => '8', :name => 'content'}
+
+          .pull-right
+            %button.btn.btn-lg.pull-right.carot#validb{:type => 'submit', :value => 'Submit'} Valider
 
 -block javascript
   :javascript
     $(document).ready( function() {
 
-      $("#radiobtns").click(function() {
+      var changeLab = function () {
 
         if ($("#public-vis").is(":checked")) {
-          $("#visibdata").hide()
+          $(visibdatalabel).text("Professeur")
         } else if ($("#pvt-vis").is(":checked")) {
           $(visibdatalabel).text("Destinataire")
-          $("#visibdata").show()
         } else if ($("#class-vis").is(":checked")) {
             $(visibdatalabel).text("Classe")
-            $("#visibdata").show()
         }
+      }
+
+      $("#radiobtns").click(function() {
+        changeLab()
       })
     })
