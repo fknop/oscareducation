@@ -20,7 +20,11 @@ class ThreadForm(forms.Form):
 class MessageReplyForm(forms.ModelForm):
     class Meta:
         model = Message
+<<<<<<< HEAD
         fields = ('content',)
+=======
+        fields = {'content'}
+>>>>>>> 38baca69d5127e530bb3f0f8ba3444e32614dd59
 
 
 
@@ -92,7 +96,7 @@ def get_thread(request, id):
     })
 
 
-def reply_thread(request, id):
+def reply_thread(request, message_id):
     """
     message_id = request.GET.get('message_id')
 
