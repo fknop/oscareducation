@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST, require_GET
 
 # Create your views here.
 from forum.models import Thread, Message
+from dashboard import get_thread_set
 
 
 class ThreadForm(forms.Form):
@@ -19,8 +20,11 @@ class ThreadForm(forms.Form):
 
 @require_GET
 def forum_dashboard(request):
-    return HttpResponse()
-
+    threads = get_thread_set(request.user)
+    return render(request, "forum/forum_dashboard.haml", {
+        "user": request.user,
+        "threads": threads
+    })
 
 def create_thread(request):
     """

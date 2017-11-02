@@ -8,7 +8,7 @@ from django.test import TestCase, Client
 from promotions.models import Lesson, Stage
 from users.models import Professor, Student
 from .models import Thread, Message
-from dashboard import private_threads, public_class_threads, public_teacher_threads
+from dashboard import private_threads, public_class_threads, public_teacher_threads_student, get_thread_set
 
 
 class ThreadModelTest(TestCase):
@@ -175,7 +175,7 @@ class TestGetDashboard(TestCase):
         self.second_lesson.professors.add(self.teacher)
         self.second_lesson.save()
 
-        self.thread = Thread(title="Help", author=self.user, recipient=self.second_user)
+        self.thread = Thread(title="Help", author=self.user, recipient=self.teacher_user)
         self.thread.save()
 
         self.second_thread = Thread(title="Send help", author=self.second_user, lesson=self.second_lesson)
@@ -211,12 +211,12 @@ class TestGetDashboard(TestCase):
         user.save()
         student = Student(user=user)
         student.save()
-        result = public_class_threads(user)
+        result = public_class_threads(student)
         expected = set()
         self.assertEquals(expected, result)
 
     def test_public_class_dashboard(self):
-        result = public_class_threads(self.second_user)
+        result = public_class_threads(self.second_student)
         expected = set()
         expected.add(self.second_thread)
         self.assertEquals(expected, result)
@@ -226,16 +226,58 @@ class TestGetDashboard(TestCase):
         user.save()
         student = Student(user=user)
         student.save()
-        result = public_teacher_threads(user)
+        result = public_teacher_threads_student(student)
         expected = set()
         self.assertEquals(expected, result)
 
-    def test_public_class_dashboard(self):
-        result = public_teacher_threads(self.second_user)
+    def test_public_class_dashboard_teacher(self):
+        result = public_teacher_threads_student(self.teacher)
         expected = set()
         expected.add(self.third_thread)
         expected.add(self.fourth_thread)
         self.assertEquals(expected, result)
+
+    def test_get_thread_set_teacher(self):
+        result = get_thread_set(self.teacher_user)
+        expected = set()
+        expected.add(self.thread)
+        expected.add(self.second_thread)
+        expected.add(self.third_thread)
+        expected.add(self.fourth_thread)
+        self.assertEquals(expected, result)
+
+    """
+    def test_public_class_dashboard_empty(self):
+        user = User(username="Jean-Mi")
+        user.save()
+        professor = Professor(user=user)
+        professor.save()
+        result = public_class_threads(professor)
+        expected = set()
+        self.assertEquals(expected, result)
+
+    def test_public_class_dashboard_teacher(self):
+        result = public_class_threads(self.teacher)
+        expected = set()
+        expected.add(self.second_thread)
+        self.assertEquals(expected, result)
+
+    def test_public_teacher_dashboard_empty_teacher(self):
+        user = User(username="Jean-Mi")
+        user.save()
+        professor = Professor(user=user)
+        professor.save()
+        result = public_teacher_threads_student(professor)
+        expected = set()
+        self.assertEquals(expected, result)
+
+    def test_public_class_dashboard_teacher(self):
+        result = public_teacher_threads_student(self.teacher)
+        expected = set()
+        expected.add(self.third_thread)
+        expected.add(self.fourth_thread)
+        self.assertEquals(expected, result)
+"""
 
 
 class TestGetThread(TestCase):
