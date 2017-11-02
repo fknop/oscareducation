@@ -19,33 +19,27 @@
           %th 
           	%center Auteur
           %th
-          	%center Compétence
+          	%center Compétence(s)
           %th
           	%center Date
 
         {% if threads %}
         	-for thread in threads
-	          %tr
-	            %td
-	            	%a{:href => "/forum/thread/{{thread.id}}" }>{{thread.title}}
-	            %td {{thread.author.username}}
-	            %td
-	            	{% if thread.skills.all %}
-		            	-for skill in thread.skills.all
-		            		{{skill.name}}
-		            {% else %}
-		            	Aucune compétence liée
-		            {% endif %}
-	            %td {{thread.modified_date}}
+        		%tr
+			        %td
+			            %a{:href => "/forum/thread/{{thread.id}}" }>{{thread.title}}
+			        %td {{thread.author.username}}
+			        %td
+			            {% if thread.skills.all %}
+				            -for skill in thread.skills.all
+				            	{{skill.name}}
+				            	%br
+				        {% else %}
+				            Aucune compétence liée
+				        {% endif %}
+			        %td {{thread.modified_date}}
         	
 	    {% else %}
 	    	%tr
 	    		%td Aucune conversation trouvée
 	    {% endif %}
-
-
-          
-
-      
-
-
