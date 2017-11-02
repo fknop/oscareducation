@@ -18,6 +18,12 @@ class ThreadForm(forms.Form):
     content = forms.Textarea()
     visibility = forms.ChoiceField()
 
+class MessageReplyForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = {'content'}
+
+
 
 @require_GET
 def forum_dashboard(request):
@@ -76,7 +82,7 @@ def get_thread(request, id):
     return HttpResponse()
 
 
-def reply_thread(request, id):
+def reply_thread(request, message_id):
     """
     message_id = request.GET.get('message_id')
 
@@ -88,5 +94,14 @@ def reply_thread(request, id):
         parent_message = get_object_or_404(Message, pk=message_id)
         message.parent_message = parent_message
     """
-
+    # Retrieve parent message by its id
+    parent = get_object_or_404(Message, pk=message_id)
+    reply_form = MessageReplyForm(data=request.POST) # request.POST contains the data we want
+    if form.is_valid():
+        # create the reply message without saving it
+        reply = reply_form.save(commit=False)
+        reply.parent_message = parent
+        # add thread
+        reply.save
+    # return render(request, template.haml) 
     return HttpResponse()

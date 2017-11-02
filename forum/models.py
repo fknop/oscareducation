@@ -10,7 +10,7 @@ class Thread(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
-    author = models.ForeignKey(User, related_name="message_author")
+    author = models.ForeignKey(User, related_name="thread_author")
     title = models.CharField(max_length=255)
     skills = models.ManyToManyField("skills.Skill", blank=True)
 
@@ -55,6 +55,7 @@ class Message(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
+    author = models.ForeignKey(User, related_name="message_author")
     thread = models.ForeignKey("Thread")
     parent_message = models.ForeignKey("self", null=True)
 
