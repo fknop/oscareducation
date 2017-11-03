@@ -1,0 +1,30 @@
+-extends "base.haml"
+
+-load static
+-load student_tags
+-load compress
+
+-block head
+
+-block content
+  .page-header
+    %h1 Forum - {{ "Ressource Comments" }}
+
+  .container-fluid.boxclasseTitle
+    .center
+      %table.table.table-hover
+        %tr
+          %th 
+          	%center Ressource
+  .comments
+    - for comment in comments
+      %textarea.form-control
+      .flex
+        .flex-spacer
+        %button.btn.btn-primary.btn-lg{:type => "submit"}= comment
+
+  .reply-block
+    %textarea.form-control
+    .flex
+      .flex-spacer
+      %button.btn.btn-primary.btn-lg{:type => "submit"} Leave a remark
