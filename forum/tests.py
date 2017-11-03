@@ -10,6 +10,7 @@ from promotions.models import Lesson, Stage
 from users.models import Professor, Student
 from .models import Thread, Message
 from dashboard import private_threads, public_class_threads, public_teacher_threads_student, get_thread_set
+from views import create_thread
 
 
 class ThreadModelTest(TestCase):
@@ -331,17 +332,20 @@ class TestPostReply(TestCase):
         self.id = self.thread_lesson.id
         self.message = Message.objects.create(author=self.first_user, content="Content of message", thread=self.thread_lesson)
         self.message.save()
+        self.factory = RequestFactory()
 
 
-    """def test_get_thread_page(self):
-        c = Client()
-        response = c.post('/forum/thread/{}'.format(self.id), data={'user':self.first_user.pk})
+    def test_get_thread_page(self):
+        request = self.factory.get('/forum/thread/{}'.format(self.id))
+        request.user = self.first_user
+        response = create_thread(request)
         self.assertEquals(response.status_code, 200)
 
     def test_reply_thread(self):
-        c = Client()
-        response = c.post('/forum/thread/{}'.format(self.id), data={'content':'content of reply', 'user':self.first_user.pk})
-        self.assertEqual(response.status_code, 200)"""
+        request = self.factory.post('/forum/thread/{}'.format(self.id), data={'content':'content of the new message'})
+        request.user = self.first_user
+        response = create_thread(request)
+        self.assertEquals(response.status_code, 200)
 
 
 class TestPostThread(TestCase):
