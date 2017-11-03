@@ -309,11 +309,38 @@ class TestGetThread(TestCase):
 
 
 class TestPostReply(TestCase):
+    def setUp(self):
+        self.first_user = User(username="Alice")
+        self.first_user.save()
+        self.second_user = USer(username="Bob")
+        self.second_user.save()
+        self.third_user = User(uername="Trudy")
+        self.third_user.save()
+        self.first_student = Student(user=self.first_user)
+        self.fist_student.save()
+        self.second_student = Student(user=self.second_user)
+        self.second_student.save()
+        self.teacher = Professor(user=third_user)
+        self.teacher.save()
+        self.lesson = Lesson(id=1, name="Lesson 1", stage_id=1)
+        self.lesson.save()
+        self.first_message = Message(author=alice, recipient=bob, content="Toast")
+        self.first_message.save()
+        self.thread_lesson = Thread.objects.create(author=self.first_student, lesson=self.lesson, title="Thread 1", id=1)
+        self.thread_lesson.save()
+        self.message = Message.objects.create(author=self.first_student, content="Content of message")
+        self.message.save()
+
+
     def test_get_thread_page(self):
         c = Client()
-        # TODO: temporary id for temporary test
         response = c.post('/forum/thread/1')
         self.assertEquals(response.status_code, 200)
+
+    def test_reply_thread(self):
+        c = Client()
+        response = c.post('/forum/thread/1', data={'content':'content of reply'})
+        self.assertEqual(response.status_code, 200)
 
 
 class TestPostThread(TestCase):
