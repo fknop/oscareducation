@@ -10,7 +10,7 @@ from promotions.models import Lesson, Stage
 from users.models import Professor, Student
 from .models import Thread, Message
 from dashboard import private_threads, public_class_threads, public_teacher_threads_student, get_thread_set
-from views import create_thread
+from views import create_thread, reply_thread
 
 
 class ThreadModelTest(TestCase):
