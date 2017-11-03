@@ -345,7 +345,7 @@ class TestPostReply(TestCase):
         content = 'content of the new message'
         request = self.factory.post('/forum/thread/{}'.format(self.id), data={'content': content})
         request.user = self.first_user
-        response = reply_thread(request)
+        response = reply_thread(request, self.id)
         
         messages = Message.objects.all().filter(thread=self.thread_lesson)
         
