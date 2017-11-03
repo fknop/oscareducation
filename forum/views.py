@@ -13,11 +13,16 @@ from forum.models import Thread, Message
 from promotions.models import Lesson
 from skills.models import Skill
 from users.models import Professor
+from dashboard import get_thread_set
 
 
 @require_GET
 def forum_dashboard(request):
-    return HttpResponse()
+    threads = get_thread_set(request.user)
+    return render(request, "forum/dashboard.haml", {
+        "user": request.user,
+        "threads": threads
+    })
 
 
 def create_thread(request):
