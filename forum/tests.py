@@ -312,7 +312,7 @@ class TestPostReply(TestCase):
     def setUp(self):
         self.first_user = User(username="Alice")
         self.first_user.save()
-        self.second_user = USer(username="Bob")
+        self.second_user = User(username="Bob")
         self.second_user.save()
         self.third_user = User(uername="Trudy")
         self.third_user.save()
@@ -322,6 +322,8 @@ class TestPostReply(TestCase):
         self.second_student.save()
         self.teacher = Professor(user=third_user)
         self.teacher.save()
+        self.stage = Stage(id=1, name="Stage1", level=1)
+        self.stage.save()
         self.lesson = Lesson(id=1, name="Lesson 1", stage_id=1)
         self.lesson.save()
         self.first_message = Message(author=alice, recipient=bob, content="Toast")
