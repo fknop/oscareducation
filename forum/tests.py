@@ -349,7 +349,7 @@ class TestPostReply(TestCase):
         
         messages = Message.objects.all().filter(thread=self.thread_lesson)
         
-        self.assertEquals(messages[-1].content, content)
+        self.assertEquals(messages.last().content, content)
         self.assertEquals(response.status_code, 200)
         
 
