@@ -342,10 +342,16 @@ class TestPostReply(TestCase):
         self.assertEquals(response.status_code, 200)
 
     def test_reply_thread(self):
-        request = self.factory.post('/forum/thread/{}'.format(self.id), data={'content':'content of the new message'})
+        content = 'content of the new message'
+        request = self.factory.post('/forum/thread/{}'.format(self.id), data={'content': content})
         request.user = self.first_user
-        response = create_thread(request)
+        response = reply_thread(request)
+        
+        messages = Message.objects.all().filter(thread=self.thread_lesson)
+        
+        self.assertEquals(messages[-1].content, content)
         self.assertEquals(response.status_code, 200)
+        
 
 
 class TestPostThread(TestCase):
