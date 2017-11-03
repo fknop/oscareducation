@@ -10,14 +10,28 @@ from django.views.decorators.http import require_POST, require_GET
 
 # Create your views here.
 from forum.models import Thread, Message
+
 from promotions.models import Lesson
 from skills.models import Skill
 from users.models import Professor
 
+from dashboard import get_thread_set
+
+
+class ThreadForm(forms.Form):
+    title = forms.TextInput()
+    content = forms.Textarea()
+    visibility = forms.ChoiceField()
+
+
 
 @require_GET
 def forum_dashboard(request):
-    return HttpResponse()
+    threads = get_thread_set(request.user)
+    return render(request, "forum/dashboard.haml", {
+        "user": request.user,
+        "threads": threads
+    })
 
 
 def create_thread(request):
