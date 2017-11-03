@@ -1,0 +1,49 @@
+-extends "base.haml"
+
+-load static
+-load student_tags
+-load compress
+
+-block head
+
+-block content
+  .page-header
+    %h1 Forum - {{ "Ressource Comments" }}
+
+  .container-fluid.boxclasseTitle
+    .center
+      %table.table.table-hover
+        %tr
+          %th 
+          	%center Ressource
+  .comments
+    - for comment in comments
+      %textarea.form-control
+      .flex
+        .flex-spacer
+        %button.btn.btn-primary.btn-lg{:type => "submit"}= comment
+      .panel.panel-default.message{:style => "margin-left: {{level|reply_margin}}px"}
+        .panel-heading
+          %span{:class => "message-author"}= message.author.username
+          %span.flex-spacer
+          %span{:class => "message-date"}= message.created_date
+        .panel-body{:class => "message-content"}= message.content
+        .panel-footer
+          %span.flex-spacer
+    -if user|can_edit:message
+      %i.fa.fa-edit.edit-btn
+    %i.fa.fa-reply.reply-btn
+
+  .reply-block
+    %textarea.form-control
+    .flex
+      .flex-spacer
+      %button.btn.btn-primary.btn-lg{:type => "submit"} Leave a remark
+
+  %form{:action => "/forum/write/", :method => 'post'} 
+    {% csrf_token %}
+    .reply-block
+        %textarea.form-control
+        .flex
+        .flex-spacer
+        %button.btn.btn-primary.btn-lg{:type => "submit"} Create Comment Thread
