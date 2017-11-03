@@ -67,8 +67,10 @@ def post_create_thread(request):
                 thread.professor = params['professor']
 
             thread.save()
-            thread.skills = params['skills']
-            thread.save()
+
+            if params['skills_fetched']:
+                thread.skills = params['fetched_skills']
+                thread.save()
 
             original_message = Message(content=params['content'], thread=thread, author=params['author'])
             original_message.save()
@@ -92,6 +94,7 @@ def deepValidateAndFetch(request, errors):
     form.is_valid()
 
     params['visibility'] = request.POST.get('visibility')
+    params['skills_fetched'] = False
 
     try:
         params['skills'] = form.cleaned_data['skills']
@@ -125,7 +128,6 @@ def deepValidateAndFetch(request, errors):
         errors.append({ "field": "visibility", "msg" :"Type de visibilité invalide"})
 
     if params['visibdata'] != "":
-
         if params['visibility'] == "private":
             try:
                 params['recipient'] = User.objects.get(pk=params['visibdata'])
@@ -146,7 +148,8 @@ def deepValidateAndFetch(request, errors):
 
     if params['skills'] != "":
         try:
-            params['skills'] = Skill.objects.filter(pk__in=params['skills'].encode('utf8').split(" "))
+            params['fetched_skills'] = Skill.objects.filter(pk__in=params['skills'].encode('utf8').split(" "))
+            params['skills_fetched'] = True
         except:
             errors.append({ "field": "skills", "msg" :"Compétence(s) inconnue(s) ou mal formée(s) (format: id1 id2 ...)"})
 
