@@ -8,7 +8,8 @@
     %span.flex-spacer
     -if user|can_edit:message
       %i.fa.fa-edit.edit-btn
-    %i.fa.fa-reply.reply-btn
+    %input#message_id{:type => "hidden", :value => ""}
+    %i.fa.fa-reply.reply-btn#btn
 
 - for reply in message.replies
   {% message_partial reply user level %}

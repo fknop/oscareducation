@@ -1,5 +1,4 @@
 from models import Thread
-from promotions.models import Lesson
 from users.models import Student, Professor
 from django.db.models import Q
 
@@ -21,13 +20,12 @@ def public_teacher_threads_student(user):
 
     for lesson in lessons:
         for prof in lesson.professors.all():
-            threads = Thread.objects.filter(Q(professor=prof))
-            for t in threads:
-                pub_threads.add(t)
+            pub_threads.update(public_teacher_threads_teacher(prof))
     return pub_threads
 
 
 def public_teacher_threads_teacher(user):
+    """Returns the threads linked to this teacher"""
     pub_threads = set()
     threads = Thread.objects.filter(professor=user)
     for t in threads:
@@ -55,7 +53,7 @@ def get_thread_set(user):
         thread_set.update(private_threads(user))
         thread_set.update(public_teacher_threads_student(student))
         thread_set.update(public_class_threads(student))
-    elif Professor.objects.filter(user=user).exists():
+    if Professor.objects.filter(user=user).exists():
         professor = Professor.objects.get(user=user)
         thread_set.update(private_threads(user))
         thread_set.update(public_teacher_threads_teacher(professor))

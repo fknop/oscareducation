@@ -7,39 +7,45 @@
 -block head
 
 -block content
-  .page-header
-    %h1 Forum - {{ user.username }}
+	{% if user.id is not None %}
 
-  .container-fluid.boxclasseTitle
-    .center
-      %table.table.table-hover
-        %tr
-          %th 
-          	%center Titre
-          %th 
-          	%center Auteur
-          %th
-          	%center Compétence(s)
-          %th
-          	%center Date
+		.page-header
+			%h1 Forum - {{ user.username }}
 
-        {% if threads %}
-        	-for thread in threads
-        		%tr
-			        %td
-			            %a{:href => "/forum/thread/{{thread.id}}" }>{{thread.title}}
-			        %td {{thread.author.username}}
-			        %td
-			            {% if thread.skills.all %}
-				            -for skill in thread.skills.all
-				            	{{skill.name}}
-				            	%br
-				        {% else %}
-				            Aucune compétence liée
-				        {% endif %}
-			        %td {{thread.modified_date}}
-        	
-	    {% else %}
-	    	%tr
-	    		%td Aucune conversation trouvée
-	    {% endif %}
+		.container-fluid.boxclasseTitle
+			.center
+		    	%table.table.table-hover
+		    		%tr
+		    			%th 
+		    				%center Titre
+		          		%th 
+		          			%center Auteur
+		          		%th
+		          			%center Compétence(s)
+		          		%th
+		          			%center Date
+
+		        	{% if threads %}
+		        		-for thread in threads
+		        			<tr style="cursor:pointer;" onclick="window.location='/forum/thread/{{thread.id}}';">
+						        %td
+						            %a{:href => "/forum/thread/{{thread.id}}", :style => "text-decoration: none;" }>{{thread.title}}
+						        %td {{thread.author.username}}
+						        %td
+						            {% if thread.skills.all %}
+							            -for skill in thread.skills.all
+							            	{{skill.name}}
+							            	%br
+							        {% else %}
+							            Aucune compétence liée
+							        {% endif %}
+						        %td {{thread.modified_date}}
+		        			</tr>
+			    	{% else %}
+			    		%tr
+			    			%td Aucune conversation trouvée
+			    	{% endif %}
+				%a.btn.btn-primary.btn-lg{:href => "/forum/write/"}>Démarrer une nouvelle discussion
+	{% else %}
+		Vous n'êtes pas identifié !
+	{% endif %}
