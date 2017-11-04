@@ -18,7 +18,7 @@ def reply_form_partial():
 
 @register.filter
 def reply_margin(level):
-    return (level - 1) * 20
+    return (min([level, 4]) - 1) * 20
 
 
 @register.filter
