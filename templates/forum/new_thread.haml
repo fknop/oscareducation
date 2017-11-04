@@ -6,6 +6,13 @@
   -compress css
     %link{rel: "stylesheet", href: "{% static 'css/new_thread.css' %}" }
 
+-block breadcrumb
+  %ol.breadcrumb
+    %li
+      %a{href: "/forum"} Forum
+    %li.active
+      %a{href: "/forum/write"} Create
+
 -block content
   .panel.panel-primary#main-panel
     .panel-heading.carot
@@ -21,30 +28,30 @@
           %label{:for => 'title'} Titre
           - for err in errors
             {% if err.field == 'title' %}
-                  .alert.alert-danger{ :role => 'alert'}
-                    %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
-                    %span Erreur: #{err.msg}
+              .alert.alert-danger{ :role => 'alert'}
+                %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+                %span Erreur: #{err.msg}
             {% endif %}
           %input.form-control#title-tf{:type => 'text', :name => 'title', :value => "#{data.title}" }
 
           #radiobtns
             %span.radio
-                %label
-                    %input#pvt-vis{'type':'radio', 'name':'visibility', 'value':'private', 'checked': true} Privé
+              %label
+                %input#pvt-vis{'type':'radio', 'name':'visibility', 'value':'private', 'checked': true} Privé
             %span.radio
-                %label
-                    %input#class-vis{:type => 'radio', :value => 'class', :name => 'visibility'} Classe
+              %label
+                %input#class-vis{:type => 'radio', :value => 'class', :name => 'visibility'} Classe
             %span.radio
-                %label
-                    %input#public-vis{:type => 'radio', :value => 'public', :name => 'visibility'} Public
+              %label
+                %input#public-vis{:type => 'radio', :value => 'public', :name => 'visibility'} Public
 
           %div#visibdata
             %label#visibdatalabel{:for => 'visibdata'} Destinataire
             - for err in errors
               {% if err.field == 'visibdata' %}
-                    .alert.alert-danger{ :role => 'alert'}
-                      %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
-                      %span Erreur: #{err.msg}
+                .alert.alert-danger{ :role => 'alert'}
+                  %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+                  %span Erreur: #{err.msg}
               {% endif %}
             %input.form-control{:type => 'text', :name => 'visibdata', :value => "#{data.visibdata}"}
 
@@ -53,9 +60,9 @@
             %label{:for => 'skills'} Compétences
             - for err in errors
               {% if err.field == 'skills' %}
-                    .alert.alert-danger{ :role => 'alert'}
-                      %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
-                      %span Erreur: #{err.msg}
+                .alert.alert-danger{ :role => 'alert'}
+                  %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+                  %span Erreur: #{err.msg}
               {% endif %}
             %input.form-control#skills-tf{:type => 'text', :name => 'skills', :value => "#{data.skills}"}
 
@@ -63,9 +70,9 @@
             %label{:for => 'content'} Message
             - for err in errors
               {% if err.field == 'content' %}
-                    .alert.alert-danger{ :role => 'alert'}
-                      %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
-                      %span Erreur: #{err.msg}
+                .alert.alert-danger{ :role => 'alert'}
+                  %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+                  %span Erreur: #{err.msg}
               {% endif %}
             %textarea.form-control#content{:rows => '8', :name => 'content'} #{data.content}
 

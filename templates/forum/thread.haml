@@ -7,6 +7,14 @@
   -compress css
     %link{rel: "stylesheet", href: "{% static 'css/thread.css' %}" }
 
+-block breadcrumb
+  %ol.breadcrumb
+    %li
+      %a{href: "/forum"} Forum
+    %li.active
+      %a{href: "/forum/thread/{{thread.id}}"} {{ thread.title }}
+
+
 -block content
   .page-header
     %h1= thread.title

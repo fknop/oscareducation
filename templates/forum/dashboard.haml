@@ -4,7 +4,10 @@
 -load student_tags
 -load compress
 
--block head
+-block breadcrumb
+	%ol.breadcrumb
+		%li.active
+			%a{href: "/forum"} Forum
 
 -block content
 	{% if user.id is not None %}
@@ -14,16 +17,16 @@
 
 		.container-fluid.boxclasseTitle
 			.center
-		    	%table.table.table-hover
-		    		%tr
-		    			%th 
-		    				%center Titre
-		          		%th 
-		          			%center Auteur
-		          		%th
-		          			%center Compétence(s)
-		          		%th
-		          			%center Date
+				%table.table.table-hover
+					%tr
+						%th
+							%center Titre
+						%th
+							%center Auteur
+						%th
+							%center Compétence(s)
+						%th
+							%center Date
 
 		        	{% if threads %}
 		        		-for thread in threads
