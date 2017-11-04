@@ -23,12 +23,11 @@ class ThreadForm(forms.Form):
     content = forms.Textarea()
     visibility = forms.ChoiceField()
 
+
 class MessageReplyForm(forms.ModelForm):
     class Meta:
         model = Message
         fields = ('content',)
-
-
 
 
 @require_GET
@@ -53,16 +52,16 @@ def create_thread(request):
 
 
 def get_create_thread_page(request):
-    return render(request, "forum/new_thread.haml", { 'errors' : [], "data": {
-            'title' : "",
-            'visibility': "private",
-            'visibdata' : "",
-            'skills' : "",
-            'content' : ""
-        } })
+    return render(request, "forum/new_thread.haml", {'errors': [], "data": {
+        'title': "",
+        'visibility': "private",
+        'visibdata': "",
+        'skills': "",
+        'content': ""
+    }})
+
 
 def post_create_thread(request):
-
     errors = []
     params = deepValidateAndFetch(request, errors)
 
@@ -91,7 +90,8 @@ def post_create_thread(request):
         return redirect('/forum/thread/' + str(thread.id))
 
     else:
-        return render(request, "forum/new_thread.haml", { "errors" : errors, "data": params })
+        return render(request, "forum/new_thread.haml", {"errors": errors, "data": params})
+
 
 class ThreadForm(forms.Form):
     title = forms.CharField()
@@ -99,8 +99,8 @@ class ThreadForm(forms.Form):
     skills = forms.CharField()
     content = forms.CharField()
 
-def deepValidateAndFetch(request, errors):
 
+def deepValidateAndFetch(request, errors):
     params = {}
     form = ThreadForm(request.POST)
 
@@ -117,27 +117,27 @@ def deepValidateAndFetch(request, errors):
         params['title'] = form.cleaned_data['title']
     except:
         params['title'] = ""
-        errors.append({ "field": "title", "msg" :"Le titre du sujet ne peut pas être vide"})
+        errors.append({"field": "title", "msg": "Le titre du sujet ne peut pas être vide"})
 
     try:
         params['visibdata'] = form.cleaned_data['visibdata']
     except:
         params['visibdata'] = ""
-        errors.append({ "field": "visibdata", "msg" :"Le paramètre de visibilité ne peut pas être vide"})
+        errors.append({"field": "visibdata", "msg": "Le paramètre de visibilité ne peut pas être vide"})
 
     try:
         params['content'] = form.cleaned_data['content']
     except:
         params['content'] = ""
-        errors.append({ "field": "content", "msg" :"Le premier message du sujet ne peut pas être vide"})
+        errors.append({"field": "content", "msg": "Le premier message du sujet ne peut pas être vide"})
 
     try:
         params['author'] = User.objects.get(pk=request.user.id)
     except:
-        errors.append({ "field": "visibdata", "msg" :"Auteur inconnu"})
+        errors.append({"field": "visibdata", "msg": "Auteur inconnu"})
 
     if params['visibility'] not in ["private", "class", "public"]:
-        errors.append({ "field": "visibility", "msg" :"Type de visibilité invalide"})
+        errors.append({"field": "visibility", "msg": "Type de visibilité invalide"})
 
     if params['visibdata'] != "":
 
@@ -145,25 +145,26 @@ def deepValidateAndFetch(request, errors):
             try:
                 params['recipient'] = User.objects.get(pk=params['visibdata'])
             except:
-                errors.append({ "field": "visibdata", "msg" :"Destinataire inconnu"})
+                errors.append({"field": "visibdata", "msg": "Destinataire inconnu"})
 
         if params['visibility'] == "class":
             try:
                 params['lesson'] = Lesson.objects.get(pk=params['visibdata'])
             except:
-                errors.append({ "field": "visibdata", "msg" :"Classe inconnue"})
+                errors.append({"field": "visibdata", "msg": "Classe inconnue"})
 
         if params['visibility'] == "public":
             try:
-                params['professor'] =  Professor.objects.get(pk=params['visibdata'])
+                params['professor'] = Professor.objects.get(pk=params['visibdata'])
             except:
-                errors.append({ "field": "visibdata", "msg" :"Professeur inconnu"})
+                errors.append({"field": "visibdata", "msg": "Professeur inconnu"})
 
     if params['skills'] != "":
         try:
             params['skills'] = Skill.objects.filter(pk__in=params['skills'].encode('utf8').split(" "))
         except:
-            errors.append({ "field": "skills", "msg" :"Compétence(s) inconnue(s) ou mal formée(s) (format: id1 id2 ...)"})
+            errors.append(
+                {"field": "skills", "msg": "Compétence(s) inconnue(s) ou mal formée(s) (format: id1 id2 ...)"})
 
     return params
 
@@ -184,32 +185,31 @@ def get_thread(request, id):
     thread = get_object_or_404(Thread, pk=id)
     messages = thread.messages()
 
+    reply_to = request.GET.get('reply_to')
+
     return render(request, "forum/thread.haml", {
         "user": request.user,
         "thread": thread,
-        "messages": messages
+        "messages": messages,
+        "reply_to": reply_to
     })
 
 
 def reply_thread(request, id):
-    """
-    message_id = request.GET.get('message_id')
-
-    content = ""  # TODO: access content
-
     thread = get_object_or_404(Thread, pk=id)
-    message = Message(content=content, thread=thread)
-    if message_id:
-        parent_message = get_object_or_404(Message, pk=message_id)
-        message.parent_message = parent_message
-    """
-    message_id = request.GET.get('message_id')
-    thread = get_object_or_404(Thread, pk=id)
-    form = MessageReplyForm(request.POST) # request.Post contains the data we want
+    message_id = request.GET.get('reply_to')
+
+    form = MessageReplyForm(request.POST)  # request.Post contains the data we want
     author = User.objects.get(pk=request.user.id)
     if form.is_valid():
         content = form.cleaned_data['content']
         message = Message.objects.create(content=content, thread=thread, author=author)
-        message.save()
 
-    return redirect(thread)
+        if message_id is not None:
+            parent_message = get_object_or_404(Message, pk=message_id)
+            message.parent_message = parent_message
+
+        message.save()
+        return redirect(message)
+    else:
+        return redirect(thread)  # TODO: error message
