@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
@@ -29,9 +30,12 @@ class MessageReplyForm(forms.ModelForm):
         fields = ('content',)
 
 
+def require_login(function):
+    return login_required(function, login_url="/accounts/usernamelogin")
 
 
 @require_GET
+@require_login
 def forum_dashboard(request):
     threads = get_thread_set(request.user)
     return render(request, "forum/dashboard.haml", {
@@ -40,6 +44,7 @@ def forum_dashboard(request):
     })
 
 
+@require_login
 def create_thread(request):
     """
     GET: return the page to create a thread
@@ -50,7 +55,6 @@ def create_thread(request):
 
     if request.method == 'POST':
         return post_create_thread(request)
-
 
 def get_create_thread_page(request):
     return render(request, "forum/new_thread.haml", { 'errors' : [], "data": {
@@ -168,6 +172,7 @@ def deepValidateAndFetch(request, errors):
     return params
 
 
+@require_login
 def thread(request, id):
     """
     GET method: return the page of a thread
