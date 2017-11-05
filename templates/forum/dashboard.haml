@@ -5,6 +5,8 @@
 -load compress
 
 -block head
+	-compress css
+    %link{:rel => "stylesheet", :href => "{% static 'css/dashboard.css' %}" }
 
 -block content
 	{% if user.id is not None %}
@@ -16,7 +18,7 @@
 			%input{:type => "search", :id => "search", :placeholder => "Chercher..."}
 			.center
 		    	%table.table.table-hover
-		    		%tr{:id => "forum"}
+		    		%tr{:class => "forum"}
 		    			%th 
 		    				%center Titre
 		          		%th 
@@ -28,9 +30,9 @@
 
 		        	{% if threads %}
 		        		-for thread in threads
-		        			%tr{:id => "{{thread.id}}", :style => "cursor:pointer;"}
+		        			%tr{:id => "{{thread.id}}", :class => "thread"}
 						        %td
-						            %p{:style => "color: #f58025;"}>{{thread.title}}
+						            %p{:class => "title"}>{{thread.title}}
 						        %td {{thread.author.username}}
 						        %td
 						            {% if thread.skills.all %}
@@ -41,13 +43,9 @@
 							            Aucune compétence liée
 							        {% endif %}
 						        %td {{thread.modified_date}}
-		        			
 			    	{% else %}
 			    		%tr
-			    			%td Aucune conversation trouvée
-			    			%td
-			    			%td
-			    			%td
+			    			%td{:colspan => "4"} Aucune conversation trouvée
 
 			    	{% endif %}
 				%a.btn.btn-primary.btn-lg{:href => "/forum/write/"}>Démarrer une nouvelle discussion
@@ -59,7 +57,7 @@
 	:javascript
 		$(document).ready(function(){
 			$("tr").click(function(){
-				if($(this).attr("id") != "forum"){
+				if($(this).attr("id")){
 					window.location = "/forum/thread/" + $(this).attr("id");
 				}
 			});
@@ -71,6 +69,6 @@
 				$("tr").filter(function(){
 					$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
 				});
-				$("#forum").show();
+				$(".forum").show();
 			});
 		});
