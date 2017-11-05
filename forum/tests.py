@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase, Client, RequestFactory
 
-from forum.views import forum_dashboard
+from forum.views import forum_dashboard, thread as get_thread
 from promotions.models import Lesson, Stage
 from users.models import Professor, Student
 from .models import Thread, Message
@@ -13,8 +13,8 @@ from .views import deepValidateAndFetch
 from dashboard import private_threads, public_class_threads, public_teacher_threads_student, get_thread_set
 from views import create_thread, reply_thread
 
-class ThreadModelTest(TestCase):
 
+class ThreadModelTest(TestCase):
     def test_invalid_thread_both_recipient_professor(self):
         user = User(username="sender")
         user.save()
@@ -91,7 +91,6 @@ class ThreadModelTest(TestCase):
         thread.clean()
         thread.save()
 
-
         self.assertTrue(thread.is_public_lesson())
         self.assertFalse(thread.is_private())
         self.assertFalse(thread.is_public_professor())
@@ -137,6 +136,7 @@ class ThreadModelTest(TestCase):
         replies_with_self = first_message.replies(include_self=True)
         self.assertEquals(replies_with_self[0], first_message)
         self.assertEquals(replies_with_self[1], second_message)
+
 
 class TestGetDashboard(TestCase):
     def setUp(self):
@@ -185,7 +185,8 @@ class TestGetDashboard(TestCase):
         self.third_thread = Thread(title="Information regarding w/e", author=self.teacher_user, professor=self.teacher)
         self.third_thread.save()
 
-        self.fourth_thread = Thread(title="Information regarding spam", author=self.teacher_user, professor=self.teacher)
+        self.fourth_thread = Thread(title="Information regarding spam", author=self.teacher_user,
+                                    professor=self.teacher)
         self.fourth_thread.save()
 
     # TODO
@@ -249,50 +250,21 @@ class TestGetDashboard(TestCase):
         expected.add(self.fourth_thread)
         self.assertEquals(expected, result)
 
-    """
-    def test_public_class_dashboard_empty(self):
-        user = User(username="Jean-Mi")
-        user.save()
-        professor = Professor(user=user)
-        professor.save()
-        result = public_class_threads(professor)
-        expected = set()
-        self.assertEquals(expected, result)
-
-    def test_public_class_dashboard_teacher(self):
-        result = public_class_threads(self.teacher)
-        expected = set()
-        expected.add(self.second_thread)
-        self.assertEquals(expected, result)
-
-    def test_public_teacher_dashboard_empty_teacher(self):
-        user = User(username="Jean-Mi")
-        user.save()
-        professor = Professor(user=user)
-        professor.save()
-        result = public_teacher_threads_student(professor)
-        expected = set()
-        self.assertEquals(expected, result)
-
-    def test_public_class_dashboard_teacher(self):
-        result = public_teacher_threads_student(self.teacher)
-        expected = set()
-        expected.add(self.third_thread)
-        expected.add(self.fourth_thread)
-        self.assertEquals(expected, result)
-"""
-
 
 class TestGetThread(TestCase):
-    def test_get_thread_page_404(self):
-        c = Client()
+    def setUp(self):
+        self.user = User(username="user_auth")
+        self.user.set_password('12345')
+        self.user.save()
 
-        # Unknown ID
-        response = c.get('/forum/thread/150')
+        self.c = Client()
+        self.c.login(username='user_auth', password='12345')
+
+    def test_get_thread_page_404(self):
+        response = self.c.get('/forum/thread/150')
         self.assertEquals(response.status_code, 404)
 
     def test_get_thread_page(self):
-        c = Client()
         user = User()
         user.save()
 
@@ -301,7 +273,8 @@ class TestGetThread(TestCase):
 
         first_message = Message(author=user, thread=thread, content="hello")
         first_message.save()
-        response = c.get('/forum/thread/' + str(thread.id))
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
         context = response.context
         self.assertEquals(context["thread"], thread)
         self.assertEquals(context["messages"][0], thread.messages()[0])
@@ -311,6 +284,7 @@ class TestGetThread(TestCase):
 class TestPostReply(TestCase):
     def setUp(self):
         self.first_user = User(username="Alice")
+        self.first_user.set_password('12345')
         self.first_user.save()
         self.second_user = User(username="Bob")
         self.second_user.save()
@@ -328,41 +302,44 @@ class TestPostReply(TestCase):
         self.lesson.save()
         self.thread_lesson = Thread.objects.create(author=self.first_user, lesson=self.lesson, title="Thread 1", id=1)
         self.thread_lesson.save()
-        self.id = self.thread_lesson.id
-        self.message = Message.objects.create(author=self.first_user, content="Content of message", thread=self.thread_lesson)
+        self.thread_id = self.thread_lesson.id
+        self.message = Message.objects.create(author=self.first_user, content="Content of message",
+                                              thread=self.thread_lesson)
         self.message.save()
-        self.factory = RequestFactory()
-
+        self.c = Client()
+        self.c.login(username='Alice', password='12345')
 
     def test_get_thread_page(self):
-        request = self.factory.get('/forum/thread/{}'.format(self.id))
-        request.user = self.first_user
-        response = create_thread(request)
+        response = self.c.get('/forum/thread/{}'.format(self.thread_id))
         self.assertEquals(response.status_code, 200)
 
     def test_reply_thread(self):
         content = 'content of the new message'
-        request = self.factory.post('/forum/thread/{}'.format(self.id), data={'content': content})
-        request.user = self.first_user
-        response = reply_thread(request, self.id)
-        
+        response = self.c.post('/forum/thread/{}'.format(self.thread_id), data={'content': content})
+
         messages = Message.objects.all().filter(thread=self.thread_lesson)
-        
+
         self.assertEquals(messages.last().content, content)
         self.assertEquals(response.status_code, 302)  # 302 because redirects
-        
 
 
 class TestPostThread(TestCase):
-    def test_post_thread(self):
-        c = Client()
-        # TODO: temporary id for temporary test
-        response = c.post('/forum/write/')
-        self.assertEquals(response.status_code, 200)
+    def setUp(self):
+        self.user = User(username='auth_user')
+        self.user.set_password('12345')
+        self.user.save()
+        self.c = Client()
+        self.c.login(username='auth_user', password='12345')
 
 
 class TestGetWritePage(TestCase):
+    def setUp(self):
+        self.user = User(username='auth_user')
+        self.user.set_password('12345')
+        self.user.save()
+        self.c = Client()
+        self.c.login(username='auth_user', password='12345')
+
     def test_get_write_page(self):
-        c = Client()
-        response = c.get('/forum/write/')
+        response = self.c.get('/forum/write/')
         self.assertEquals(response.status_code, 200)
