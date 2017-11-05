@@ -59,7 +59,7 @@
 	:javascript
 		$(document).ready(function(){
 			$("tr").click(function(){
-				if($(this).attr("id")){
+				if($(this).attr("id") != "forum"){
 					window.location = "/forum/thread/" + $(this).attr("id");
 				}
 			});
