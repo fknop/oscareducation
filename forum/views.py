@@ -10,10 +10,17 @@ from django.views.decorators.http import require_POST, require_GET
 
 # Create your views here.
 from forum.models import Thread, Message
+
 from promotions.models import Lesson
 from skills.models import Skill
 from users.models import Professor
+
 from dashboard import get_thread_set
+
+class MessageReplyForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ('content',)
 
 
 @require_GET
@@ -111,7 +118,7 @@ def deepValidateAndFetch(request, errors):
         params['visibdata'] = form.cleaned_data['visibdata']
     except:
         params['visibdata'] = ""
-        errors.append({ "field": "visibdata", "msg" :"Le paramètre de visibilité ne peut pas être vide"})
+        errors.append({ "field": "visibdata", "msg" :"Ce champs ne peut pas être vide"})
 
     try:
         params['content'] = form.cleaned_data['content']
@@ -172,24 +179,31 @@ def get_thread(request, id):
     thread = get_object_or_404(Thread, pk=id)
     messages = thread.messages()
 
+    reply_to = request.GET.get('reply_to')
+
     return render(request, "forum/thread.haml", {
         "user": request.user,
         "thread": thread,
-        "messages": messages
+        "messages": messages,
+        "reply_to": reply_to
     })
 
 
 def reply_thread(request, id):
-    """
-    message_id = request.GET.get('message_id')
-
-    content = ""  # TODO: access content
-
     thread = get_object_or_404(Thread, pk=id)
-    message = Message(content=content, thread=thread)
-    if message_id:
-        parent_message = get_object_or_404(Message, pk=message_id)
-        message.parent_message = parent_message
-    """
+    message_id = request.GET.get('reply_to')
 
-    return HttpResponse()
+    form = MessageReplyForm(request.POST)  # request.Post contains the data we want
+    author = User.objects.get(pk=request.user.id)
+    if form.is_valid():
+        content = form.cleaned_data['content']
+        message = Message.objects.create(content=content, thread=thread, author=author)
+
+        if message_id is not None:
+            parent_message = get_object_or_404(Message, pk=message_id)
+            message.parent_message = parent_message
+
+        message.save()
+        return redirect(message)
+    else:
+        return redirect(thread)  # TODO: error message

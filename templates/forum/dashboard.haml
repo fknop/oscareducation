@@ -4,42 +4,81 @@
 -load student_tags
 -load compress
 
+
+
 -block head
+	-compress css
+    %link{:rel => "stylesheet", :href => "{% static 'css/dashboard.css' %}" }
+
+
+-block breadcrumb
+	%ol.breadcrumb
+		%li.active
+			%a{href: "/forum"} Forum
 
 -block content
-  .page-header
-    %h1 Forum - {{ user.username }}
+	{% if user.id is not None %}
 
-  .container-fluid.boxclasseTitle
-    .center
-      %table.table.table-hover
-        %tr
-          %th 
-          	%center Titre
-          %th 
-          	%center Auteur
-          %th
-          	%center Compétence(s)
-          %th
-          	%center Date
+		.page-header
+			%h1 Forum - {{ user.username }}
 
-        {% if threads %}
-        	-for thread in threads
-        		%tr
-			        %td
-			            %a{:href => "/forum/thread/{{thread.id}}" }>{{thread.title}}
-			        %td {{thread.author.username}}
-			        %td
-			            {% if thread.skills.all %}
-				            -for skill in thread.skills.all
-				            	{{skill.name}}
-				            	%br
-				        {% else %}
-				            Aucune compétence liée
-				        {% endif %}
-			        %td {{thread.modified_date}}
-        	
-	    {% else %}
-	    	%tr
-	    		%td Aucune conversation trouvée
-	    {% endif %}
+		.container-fluid.boxclasseTitle
+			%input{:type => "search", :id => "search", :placeholder => "Chercher..."}
+			.center
+
+		    	%table.table.table-hover
+		    		%tr{:class => "forum"}
+		    			%th 
+		    				%center Titre
+		          		%th 
+		          			%center Auteur
+		          		%th
+		          			%center Compétence(s)
+		          		%th
+		          			%center Date
+
+
+		        	{% if threads %}
+		        		-for thread in threads
+		        			%tr{:id => "{{thread.id}}", :class => "thread"}
+						        %td
+						            %p{:class => "title"}>{{thread.title}}
+						        %td {{thread.author.username}}
+						        %td
+						            {% if thread.skills.all %}
+							            -for skill in thread.skills.all
+							            	{{skill.name}}
+							            	%br
+							        {% else %}
+							            Aucune compétence liée
+							        {% endif %}
+						        %td {{thread.modified_date}}
+			    	{% else %}
+			    		%tr
+			    			%td{:colspan => "4"} Aucune conversation trouvée
+
+			    	{% endif %}
+				%a.btn.btn-primary.btn-lg{:href => "/forum/write/"}>Démarrer une nouvelle discussion
+	{% else %}
+		Vous n'êtes pas identifié !
+	{% endif %}
+
+-block javascript
+	:javascript
+		$(document).ready(function(){
+			$("tr").click(function(){
+				if($(this).attr("id")){
+					window.location = "/forum/thread/" + $(this).attr("id");
+				}
+			});
+		});
+
+		$(document).ready(function(){
+			$("#search").on("keyup", function(){
+				var value = $(this).val().toLowerCase();
+				$("tr").filter(function(){
+					$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+				});
+				$(".forum").show();
+			});
+		});

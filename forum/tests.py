@@ -9,8 +9,9 @@ from forum.views import forum_dashboard
 from promotions.models import Lesson, Stage
 from users.models import Professor, Student
 from .models import Thread, Message
+from .views import deepValidateAndFetch
 from dashboard import private_threads, public_class_threads, public_teacher_threads_student, get_thread_set
-
+from views import create_thread, reply_thread
 
 class ThreadModelTest(TestCase):
 
@@ -308,11 +309,48 @@ class TestGetThread(TestCase):
 
 
 class TestPostReply(TestCase):
+    def setUp(self):
+        self.first_user = User(username="Alice")
+        self.first_user.save()
+        self.second_user = User(username="Bob")
+        self.second_user.save()
+        self.third_user = User(username="Trudy")
+        self.third_user.save()
+        self.first_student = Student(user=self.first_user)
+        self.first_student.save()
+        self.second_student = Student(user=self.second_user)
+        self.second_student.save()
+        self.teacher = Professor(user=self.third_user)
+        self.teacher.save()
+        self.stage = Stage(id=1, name="Stage1", level=1)
+        self.stage.save()
+        self.lesson = Lesson(id=1, name="Lesson 1", stage_id=1)
+        self.lesson.save()
+        self.thread_lesson = Thread.objects.create(author=self.first_user, lesson=self.lesson, title="Thread 1", id=1)
+        self.thread_lesson.save()
+        self.id = self.thread_lesson.id
+        self.message = Message.objects.create(author=self.first_user, content="Content of message", thread=self.thread_lesson)
+        self.message.save()
+        self.factory = RequestFactory()
+
+
     def test_get_thread_page(self):
-        c = Client()
-        # TODO: temporary id for temporary test
-        response = c.post('/forum/thread/1')
+        request = self.factory.get('/forum/thread/{}'.format(self.id))
+        request.user = self.first_user
+        response = create_thread(request)
         self.assertEquals(response.status_code, 200)
+
+    def test_reply_thread(self):
+        content = 'content of the new message'
+        request = self.factory.post('/forum/thread/{}'.format(self.id), data={'content': content})
+        request.user = self.first_user
+        response = reply_thread(request, self.id)
+        
+        messages = Message.objects.all().filter(thread=self.thread_lesson)
+        
+        self.assertEquals(messages.last().content, content)
+        self.assertEquals(response.status_code, 302)  # 302 because redirects
+        
 
 
 class TestPostThread(TestCase):
