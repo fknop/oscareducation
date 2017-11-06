@@ -6,6 +6,13 @@
   -compress css
     %link{rel: "stylesheet", href: "{% static 'css/new_thread.css' %}" }
 
+-block breadcrumb
+  %ol.breadcrumb
+    %li
+      %a{href: "/forum"} Forum
+    %li.active
+      %a{href: "/forum/write"} Create
+
 -block content
   .panel.panel-primary#main-panel
     .panel-heading.carot

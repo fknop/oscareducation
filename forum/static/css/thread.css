@@ -27,3 +27,8 @@
     height: 150px;
     margin-bottom: 10px;
 }
+
+.message-anchor, .message-anchor:hover, .message-anchor:active, .message-anchor:focus {
+    color: white;
+}
+

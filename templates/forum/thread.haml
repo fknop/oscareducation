@@ -7,6 +7,14 @@
   -compress css
     %link{rel: "stylesheet", href: "{% static 'css/thread.css' %}" }
 
+-block breadcrumb
+  %ol.breadcrumb
+    %li
+      %a{href: "/forum"} Forum
+    %li.active
+      %a{href: "/forum/thread/{{thread.id}}"} {{ thread.title }}
+
+
 -block content
   .page-header
     %h1= thread.title
@@ -15,7 +23,7 @@
 
   .messages
     - for message in messages
-      {% message_partial message user 0 %}
+      {% message_partial message user reply_to 0 %}
 
   .reply-block
     %form{:action =>'' , :method => 'post'} {% csrf_token %}
