@@ -406,22 +406,6 @@ class TestPostThread(TestCase):
         self.assertEquals(thread_cnt_before, Thread.objects.all().count())
         self.assertEquals(msg_cnt_before, Message.objects.all().count())
 
-
-    def test_post_invalid_new_thread_unknown_skills(self):
-        thread_cnt_before = Thread.objects.all().count()
-        msg_cnt_before = Message.objects.all().count()
-        new_thread = {
-            "title": "titre_4",
-            "visibdata": str(self.lesson.id),
-            "skills": "l m",
-            "content": "message_4",
-            "visibility": "class"
-        }
-        response = self.c.post('/forum/write/', data=new_thread)
-        self.assertEquals(response.status_code, 200)
-        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
-        self.assertEquals(msg_cnt_before, Message.objects.all().count())
-
     def test_post_invalid_new_thread_unknown_skills(self):
         thread_cnt_before = Thread.objects.all().count()
         msg_cnt_before = Message.objects.all().count()
