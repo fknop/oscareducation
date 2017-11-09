@@ -133,10 +133,8 @@ def deepValidateAndFetch(request, errors):
         params['content'] = ""
         errors.append({ "field": "content", "msg" :"Le premier message du sujet ne peut pas être vide"})
 
-    try:
-        params['author'] = User.objects.get(pk=request.user.id)
-    except:
-        errors.append({ "field": "visibdata", "msg" :"Auteur inconnu"})
+    # Shouldn't fail with require_login
+    params['author'] = User.objects.get(pk=request.user.id)
 
     if params['visibility'] not in ["private", "class", "public"]:
         errors.append({ "field": "visibility", "msg" :"Type de visibilité invalide"})
