@@ -977,6 +977,8 @@ class Auth(SeleniumTestCase):
         # call find_css. Since we can chain methods, we can
         # call the built-in send_keys method right away to change the
         # value of the field
+        time.sleep(20)
+
         self.wd.find_css('#id_username').send_keys("admin")
         # for the password, we can now just call find_css since we know the page
         # has been rendered
