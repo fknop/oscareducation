@@ -8,6 +8,7 @@ from django.test import TestCase, Client, RequestFactory
 from forum.views import forum_dashboard, thread as get_thread
 from promotions.models import Lesson, Stage
 from users.models import Professor, Student
+from skills.models import Skill
 from .models import Thread, Message
 from .views import deepValidateAndFetch
 from dashboard import private_threads, public_class_threads, public_teacher_threads_student, get_thread_set
@@ -325,11 +326,161 @@ class TestPostReply(TestCase):
 
 class TestPostThread(TestCase):
     def setUp(self):
-        self.user = User(username='auth_user')
-        self.user.set_password('12345')
-        self.user.save()
+        self.user1 = User(username='Michel')
+        self.user1.set_password('12345')
+        self.user1.save()
+        self.teacher = Professor(user=self.user1)
+        self.teacher.save()
+        self.user2 = User(username="Trudy")
+        self.user2.save()
+        self.student = Student(user=self.user2)
+        self.student.save()
+        self.stage = Stage(id=1, name="Stage1", level=1)
+        self.stage.save()
+        self.lesson = Lesson(id=1, name="Lesson 1", stage_id=1)
+        self.lesson.save()
+        self.skill1 = Skill(code=422230, name="Compter deux par deux", description="")
+        self.skill1.save()
+        self.skill2 = Skill(code=422231, name="Lacer ses chaussures", description="")
+        self.skill2.save()
         self.c = Client()
-        self.c.login(username='auth_user', password='12345')
+        self.c.login(username='Michel', password='12345')
+
+    def test_post_valid_new_public_thread(self):
+        new_thread = {
+            "title": "titre_1",
+            "visibdata": str(self.teacher.id),
+            "skills": "422230 422231",
+            "content": "message_1",
+            "visibility": "public"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        new_thread = Thread.objects.order_by('-pk')[0]
+        last_msg = Message.objects.order_by('-pk')[0]
+        self.assertEquals(response.status_code, 302)
+        self.assertEquals(new_thread.title, "titre_1")
+        self.assertEquals(last_msg.content, "message_1")
+
+    def test_post_valid_new_private_thread(self):
+        new_thread = {
+            "title": "titre_2",
+            "visibdata": str(self.user2.id),
+            "skills": "422230 422231",
+            "content": "message_2",
+            "visibility": "private"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        new_thread = Thread.objects.order_by('-pk')[0]
+        last_msg = Message.objects.order_by('-pk')[0]
+        self.assertEquals(response.status_code, 302)
+        self.assertEquals(new_thread.title, "titre_2")
+        self.assertEquals(last_msg.content, "message_2")
+
+    def test_post_valid_new_class_thread(self):
+        new_thread = {
+            "title": "titre_3",
+            "visibdata": str(self.lesson.id),
+            "skills": "422230 422231",
+            "content": "message_3",
+            "visibility": "class"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        new_thread = Thread.objects.order_by('-pk')[0]
+        last_msg = Message.objects.order_by('-pk')[0]
+        self.assertEquals(response.status_code, 302)
+        self.assertEquals(new_thread.title, "titre_3")
+        self.assertEquals(last_msg.content, "message_3")
+
+    def test_post_invalid_new_thread_blank_req_fields(self):
+        thread_cnt_before = Thread.objects.all().count()
+        msg_cnt_before = Message.objects.all().count()
+        new_thread = {
+            "title": "",
+            "visibdata": "",
+            "skills": "",
+            "content": "",
+            "visibility": ""
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
+        self.assertEquals(msg_cnt_before, Message.objects.all().count())
+
+
+    def test_post_invalid_new_thread_unknown_skills(self):
+        thread_cnt_before = Thread.objects.all().count()
+        msg_cnt_before = Message.objects.all().count()
+        new_thread = {
+            "title": "titre_4",
+            "visibdata": str(self.lesson.id),
+            "skills": "l m",
+            "content": "message_4",
+            "visibility": "class"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
+        self.assertEquals(msg_cnt_before, Message.objects.all().count())
+
+    def test_post_invalid_new_thread_unknown_skills(self):
+        thread_cnt_before = Thread.objects.all().count()
+        msg_cnt_before = Message.objects.all().count()
+        new_thread = {
+            "title": "titre_5",
+            "visibdata": str(self.lesson.id),
+            "skills": "l m",
+            "content": "message_5",
+            "visibility": "class"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
+        self.assertEquals(msg_cnt_before, Message.objects.all().count())
+
+    def test_post_invalid_new_private_thread_unknown_recipient(self):
+        thread_cnt_before = Thread.objects.all().count()
+        msg_cnt_before = Message.objects.all().count()
+        new_thread = {
+            "title": "titre_6",
+            "visibdata": "unknown",
+            "skills": "422230 422231",
+            "content": "message_6",
+            "visibility": "private"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
+        self.assertEquals(msg_cnt_before, Message.objects.all().count())
+
+    def test_post_invalid_new_class_thread_unknown_class(self):
+        thread_cnt_before = Thread.objects.all().count()
+        msg_cnt_before = Message.objects.all().count()
+        new_thread = {
+            "title": "titre_7",
+            "visibdata": "unknown",
+            "skills": "422230 422231",
+            "content": "message_7",
+            "visibility": "class"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
+        self.assertEquals(msg_cnt_before, Message.objects.all().count())
+
+    def test_post_invalid_new_public_thread_unknown_professor(self):
+        thread_cnt_before = Thread.objects.all().count()
+        msg_cnt_before = Message.objects.all().count()
+        new_thread = {
+            "title": "titre_8",
+            "visibdata": "unknown",
+            "skills": "422230 422231",
+            "content": "message_7",
+            "visibility": "public"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
+        self.assertEquals(msg_cnt_before, Message.objects.all().count())
 
 
 class TestGetWritePage(TestCase):
