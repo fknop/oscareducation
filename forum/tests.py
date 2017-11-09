@@ -544,7 +544,6 @@ class Auth(SeleniumTestCase):
         # call find_css. Since we can chain methods, we can
         # call the built-in send_keys method right away to change the
         # value of the field
-        time.sleep(20)
         self.wd.find_css('#id_username').send_keys("admin")
         # for the password, we can now just call find_css since we know the page
         # has been rendered
@@ -553,6 +552,89 @@ class Auth(SeleniumTestCase):
         # http://seleniumhq.org/docs/03_webdriver.html for
         # a more compreehensive documentation.
         self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        # Again, after submiting the form, we'll use the find_css helper
+        # method and pass as a CSS selector, an id that will only exist
+        # on the index page and not the login page
+        self.wd.find_css("#content-main")
+        
+class SeleniumDashboardTest(SeleniumTestCase):
+
+    def setUp(self):
+        
+        self.user = User(username="Brandon")
+        self.user.save()
+        self.second_user = User(username="Kevin")
+        self.second_user.save()
+        self.teacher_user = User(username="Vince")
+        self.teacher_user.save()
+        self.second_teacher_user = User(username="Nicolas")
+        self.second_teacher_user.save()
+
+        self.student = Student(user=self.user)
+        self.student.save()
+        self.second_student = Student(user=self.second_user)
+        self.second_student.save()
+        self.teacher = Professor(user=self.teacher_user)
+        self.teacher.save()
+        self.second_teacher = Professor(user=self.second_teacher_user)
+        self.second_teacher.save()
+
+        self.stage = Stage(id=1, name="Stage1", level=1)
+        self.stage.save()
+        self.second_stage = Stage(id=2, name="Stage2", level=1)
+        self.second_stage.save()
+
+        self.lesson = Lesson(id=1, name="English", stage_id=1)
+        self.lesson.save()
+        self.lesson.students.add(self.student)
+        self.lesson.students.add(self.second_student)
+        self.lesson.professors.add(self.teacher)
+        self.lesson.save()
+
+        self.second_lesson = Lesson(id=2, name="French", stage_id=2)
+        self.second_lesson.save()
+        self.second_lesson.students.add(self.second_student)
+        self.second_lesson.professors.add(self.teacher)
+        self.second_lesson.save()
+
+        self.thread = Thread(title="Help", author=self.user, recipient=self.teacher_user)
+        self.thread.save()
+
+        self.second_thread = Thread(title="Send help", author=self.second_user, lesson=self.second_lesson)
+        self.second_thread.save()
+
+        self.third_thread = Thread(title="Information regarding w/e", author=self.teacher_user, professor=self.teacher)
+        self.third_thread.save()
+
+        self.fourth_thread = Thread(title="Information regarding spam", author=self.teacher_user,
+                                    professor=self.teacher)
+        self.fourth_thread.save()
+
+        # Instantiating the WebDriver will load your browser
+        self.wd = CustomWebDriver()
+
+    def tearDown(self):
+        self.wd.quit()
+    def test_login(self):
+        
+        self.wd.get(self.live_server_url)
+
+        # Selenium knows it has to wait for page loads (except for AJAX requests)
+        # so we don't need to do anything about that, and can just
+        # call find_css. Since we can chain methods, we can
+        # call the built-in send_keys method right away to change the
+        # value of the field
+        self.wd.find_element_by_xpath('//a[@href="/accounts/usernamelogin/"]').click()
+        time.sleep(20)
+        self.wd.find_element_by_xpath('//input[@id="id_username"]').send_keys("admin")
+        # for the password, we can now just call find_css since we know the page
+        # has been rendered
+        time.sleep(10)
+        self.wd.find_css("#id_password").send_keys('pw')
+        # You're not limited to CSS selectors only, check
+        # http://seleniumhq.org/docs/03_webdriver.html for
+        # a more compreehensive documentation.
+        self.wd.find_element_by_xpath('//a[@href="/accounts/usernamelogirn/"]').click()
         # Again, after submiting the form, we'll use the find_css helper
         # method and pass as a CSS selector, an id that will only exist
         # on the index page and not the login page
