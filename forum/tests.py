@@ -323,6 +323,25 @@ class TestPostReply(TestCase):
         self.assertEquals(messages.last().content, content)
         self.assertEquals(response.status_code, 302)  # 302 because redirects
 
+    def test_reply_parent_message(self):
+        content = 'content of the new message'
+        response = self.c.post('/forum/thread/{}'.format(self.thread_id), data={'content': content})
+
+        messages = Message.objects.all().filter(thread=self.thread_lesson)
+
+        self.assertEquals(messages.last().content, content)
+        self.assertEquals(response.status_code, 302)  # 302 because redirects
+
+        content = 'content'
+        response = self.c.post('/forum/thread/{}?reply_to={}'.format(self.thread_id, messages.last().id), data={'content': content})
+        self.assertEquals(response.status_code, 302)
+
+
+    def test_reply_unknown_parent_message(self):
+        content = 'content'
+        response = self.c.post('/forum/thread/{}?reply_to=155'.format(self.thread_id), data={'content': content})
+        self.assertEquals(response.status_code, 404)
+
 
 class TestPostThread(TestCase):
     def setUp(self):

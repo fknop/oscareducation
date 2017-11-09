@@ -211,5 +211,3 @@ def reply_thread(request, id):
 
         message.save()
         return redirect(message)
-    else:
-        return redirect(thread)  # TODO: error message
