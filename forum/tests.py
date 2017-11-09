@@ -163,6 +163,7 @@ class TestGetDashboard(TestCase):
         self.second_user = User(username="Kevin")
         self.second_user.save()
         self.teacher_user = User(username="Vince")
+        self.teacher_user.set_password('12345')
         self.teacher_user.save()
         self.second_teacher_user = User(username="Nicolas")
         self.second_teacher_user.save()
@@ -703,7 +704,7 @@ class TestMisc(TestCase):
         self.student.save()
         self.second_student = Student(user=self.second_user)
         self.second_student.save()
-        self.teacher = Professor(user=self.teacher_user)
+        self.teacher = Professor(user=self.teacher_user, is_pending=False)
         self.teacher.save()
         self.second_teacher = Professor(user=self.second_teacher_user)
         self.second_teacher.save()
@@ -1052,23 +1053,28 @@ class SeleniumDashboardTest(SeleniumTestCase):
         
         self.wd.get(self.live_server_url)
 
-        # Selenium knows it has to wait for page loads (except for AJAX requests)
-        # so we don't need to do anything about that, and can just
-        # call find_css. Since we can chain methods, we can
-        # call the built-in send_keys method right away to change the
-        # value of the field
+        
+        
         self.wd.find_element_by_xpath('//a[@href="/accounts/usernamelogin/"]').click()
+        self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
+        self.wd.find_element_by_id('id_username').send_keys("Vince")
+        
+        
+        
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        self.wd.find_element_by_id("id_password").send_keys('12345')
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        
+        self.wd.find_element_by_link_text('English')
+        self.wd.find_element_by_link_text('French')
+        self.wd.get(self.live_server_url + '/forum/')
+        #html body div.fond div.container.centralcontainer div.container-fluid.boxclasseTitle div.center table.table.table-hover tbody tr#42.thread td p.title
+        #Information regarding w/e
+        #<p class="title">Information regarding w/e</p>
+        ##\34 2 > td:nth-child(1) > p:nth-child(1)
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Help')]]")
         time.sleep(20)
-        self.wd.find_element_by_xpath('//input[@id="id_username"]').send_keys("admin")
-        # for the password, we can now just call find_css since we know the page
-        # has been rendered
-        time.sleep(10)
-        self.wd.find_css("#id_password").send_keys('pw')
-        # You're not limited to CSS selectors only, check
-        # http://seleniumhq.org/docs/03_webdriver.html for
-        # a more compreehensive documentation.
-        self.wd.find_element_by_xpath('//a[@href="/accounts/usernamelogirn/"]').click()
-        # Again, after submiting the form, we'll use the find_css helper
-        # method and pass as a CSS selector, an id that will only exist
-        # on the index page and not the login page
-        self.wd.find_css("#content-main")
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Send help')]]")
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Information regarding w/e')]]")
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Information regarding spam')]]")
+        
