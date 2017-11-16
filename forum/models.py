@@ -45,6 +45,9 @@ class Thread(models.Model):
 
         raise ValidationError('Thread: must be only one visibility')
 
+    def get_absolute_url(self):
+        return "/forum/thread/{}".format(self.id)
+
 
 class MessageAttachment(models.Model):
     name = models.CharField(max_length=255)  # The name of the uploaded file
@@ -64,6 +67,9 @@ class Message(models.Model):
 
     class Meta:
         ordering = ['created_date']
+
+    def get_absolute_url(self):
+        return "/forum/thread/{}#message-{}".format(self.thread_id, self.id)
 
     def attachments(self):
         return MessageAttachment.objects.filter(message=self.id)

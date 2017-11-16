@@ -1,0 +1,7 @@
+.reply-block
+  %form{:action =>'' , :method => 'post'} {% csrf_token %}
+    %textarea.form-control#content{:name => 'content'}
+    .flex
+      .flex-spacer
+      %button.btn.btn-primary.btn-lg#btn{:type => "submit"} Reply
+

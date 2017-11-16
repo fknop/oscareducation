@@ -1,0 +1,27 @@
+
+#main-panel {
+  border: none;
+}
+
+#main-panel .panel-heading {
+  border: none;
+}
+
+#main-panel textarea {
+  resize: none;
+}
+
+.carot {
+  background-color: #f58025 !important;
+}
+
+#validb {
+  color: white;
+  display: block;
+  margin-top: 10px;
+}
+
+#main-panel .radio {
+  display: inline-block;
+  margin-right: 10px;
+}

@@ -5,15 +5,17 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase, Client, RequestFactory
 
-from forum.views import forum_dashboard
+from forum.views import forum_dashboard, thread as get_thread
 from promotions.models import Lesson, Stage
 from users.models import Professor, Student
+from skills.models import Skill
 from .models import Thread, Message
+from .views import deepValidateAndFetch
 from dashboard import private_threads, public_class_threads, public_teacher_threads_student, get_thread_set
+from views import create_thread, reply_thread
 
 
 class ThreadModelTest(TestCase):
-
     def test_invalid_thread_both_recipient_professor(self):
         user = User(username="sender")
         user.save()
@@ -89,7 +91,6 @@ class ThreadModelTest(TestCase):
         thread = Thread(title="Help", author=user, lesson=lesson)
         thread.clean()
         thread.save()
-
 
         self.assertTrue(thread.is_public_lesson())
         self.assertFalse(thread.is_private())
@@ -185,7 +186,8 @@ class TestGetDashboard(TestCase):
         self.third_thread = Thread(title="Information regarding w/e", author=self.teacher_user, professor=self.teacher)
         self.third_thread.save()
 
-        self.fourth_thread = Thread(title="Information regarding spam", author=self.teacher_user, professor=self.teacher)
+        self.fourth_thread = Thread(title="Information regarding spam", author=self.teacher_user,
+                                    professor=self.teacher)
         self.fourth_thread.save()
 
     # TODO
@@ -249,50 +251,21 @@ class TestGetDashboard(TestCase):
         expected.add(self.fourth_thread)
         self.assertEquals(expected, result)
 
-    """
-    def test_public_class_dashboard_empty(self):
-        user = User(username="Jean-Mi")
-        user.save()
-        professor = Professor(user=user)
-        professor.save()
-        result = public_class_threads(professor)
-        expected = set()
-        self.assertEquals(expected, result)
-
-    def test_public_class_dashboard_teacher(self):
-        result = public_class_threads(self.teacher)
-        expected = set()
-        expected.add(self.second_thread)
-        self.assertEquals(expected, result)
-
-    def test_public_teacher_dashboard_empty_teacher(self):
-        user = User(username="Jean-Mi")
-        user.save()
-        professor = Professor(user=user)
-        professor.save()
-        result = public_teacher_threads_student(professor)
-        expected = set()
-        self.assertEquals(expected, result)
-
-    def test_public_class_dashboard_teacher(self):
-        result = public_teacher_threads_student(self.teacher)
-        expected = set()
-        expected.add(self.third_thread)
-        expected.add(self.fourth_thread)
-        self.assertEquals(expected, result)
-"""
-
 
 class TestGetThread(TestCase):
-    def test_get_thread_page_404(self):
-        c = Client()
+    def setUp(self):
+        self.user = User(username="user_auth")
+        self.user.set_password('12345')
+        self.user.save()
 
-        # Unknown ID
-        response = c.get('/forum/thread/150')
+        self.c = Client()
+        self.c.login(username='user_auth', password='12345')
+
+    def test_get_thread_page_404(self):
+        response = self.c.get('/forum/thread/150')
         self.assertEquals(response.status_code, 404)
 
     def test_get_thread_page(self):
-        c = Client()
         user = User()
         user.save()
 
@@ -301,7 +274,8 @@ class TestGetThread(TestCase):
 
         first_message = Message(author=user, thread=thread, content="hello")
         first_message.save()
-        response = c.get('/forum/thread/' + str(thread.id))
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
         context = response.context
         self.assertEquals(context["thread"], thread)
         self.assertEquals(context["messages"][0], thread.messages()[0])
@@ -309,24 +283,217 @@ class TestGetThread(TestCase):
 
 
 class TestPostReply(TestCase):
+    def setUp(self):
+        self.first_user = User(username="Alice")
+        self.first_user.set_password('12345')
+        self.first_user.save()
+        self.second_user = User(username="Bob")
+        self.second_user.save()
+        self.third_user = User(username="Trudy")
+        self.third_user.save()
+        self.first_student = Student(user=self.first_user)
+        self.first_student.save()
+        self.second_student = Student(user=self.second_user)
+        self.second_student.save()
+        self.teacher = Professor(user=self.third_user)
+        self.teacher.save()
+        self.stage = Stage(id=1, name="Stage1", level=1)
+        self.stage.save()
+        self.lesson = Lesson(id=1, name="Lesson 1", stage_id=1)
+        self.lesson.save()
+        self.thread_lesson = Thread.objects.create(author=self.first_user, lesson=self.lesson, title="Thread 1", id=1)
+        self.thread_lesson.save()
+        self.thread_id = self.thread_lesson.id
+        self.message = Message.objects.create(author=self.first_user, content="Content of message",
+                                              thread=self.thread_lesson)
+        self.message.save()
+        self.c = Client()
+        self.c.login(username='Alice', password='12345')
+
     def test_get_thread_page(self):
-        c = Client()
-        # TODO: temporary id for temporary test
-        response = c.post('/forum/thread/1')
+        response = self.c.get('/forum/thread/{}'.format(self.thread_id))
         self.assertEquals(response.status_code, 200)
+
+    def test_reply_thread(self):
+        content = 'content of the new message'
+        response = self.c.post('/forum/thread/{}'.format(self.thread_id), data={'content': content})
+
+        messages = Message.objects.all().filter(thread=self.thread_lesson)
+
+        self.assertEquals(messages.last().content, content)
+        self.assertEquals(response.status_code, 302)  # 302 because redirects
+
+    def test_reply_parent_message(self):
+        content = 'content of the new message'
+        response = self.c.post('/forum/thread/{}'.format(self.thread_id), data={'content': content})
+
+        messages = Message.objects.all().filter(thread=self.thread_lesson)
+
+        self.assertEquals(messages.last().content, content)
+        self.assertEquals(response.status_code, 302)  # 302 because redirects
+
+        content = 'content'
+        response = self.c.post('/forum/thread/{}?reply_to={}'.format(self.thread_id, messages.last().id), data={'content': content})
+        self.assertEquals(response.status_code, 302)
+
+
+    def test_reply_unknown_parent_message(self):
+        content = 'content'
+        response = self.c.post('/forum/thread/{}?reply_to=155'.format(self.thread_id), data={'content': content})
+        self.assertEquals(response.status_code, 404)
 
 
 class TestPostThread(TestCase):
-    def test_post_thread(self):
-        c = Client()
-        # TODO: temporary id for temporary test
-        response = c.post('/forum/write/')
+    def setUp(self):
+        self.user1 = User(username='Michel')
+        self.user1.set_password('12345')
+        self.user1.save()
+        self.teacher = Professor(user=self.user1)
+        self.teacher.save()
+        self.user2 = User(username="Trudy")
+        self.user2.save()
+        self.student = Student(user=self.user2)
+        self.student.save()
+        self.stage = Stage(id=1, name="Stage1", level=1)
+        self.stage.save()
+        self.lesson = Lesson(id=1, name="Lesson 1", stage_id=1)
+        self.lesson.save()
+        self.skill1 = Skill(code=422230, name="Compter deux par deux", description="")
+        self.skill1.save()
+        self.skill2 = Skill(code=422231, name="Lacer ses chaussures", description="")
+        self.skill2.save()
+        self.c = Client()
+        self.c.login(username='Michel', password='12345')
+
+    def test_post_valid_new_public_thread(self):
+        new_thread = {
+            "title": "titre_1",
+            "visibdata": str(self.teacher.id),
+            "skills": "422230 422231",
+            "content": "message_1",
+            "visibility": "public"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        new_thread = Thread.objects.order_by('-pk')[0]
+        last_msg = Message.objects.order_by('-pk')[0]
+        self.assertEquals(response.status_code, 302)
+        self.assertEquals(new_thread.title, "titre_1")
+        self.assertEquals(last_msg.content, "message_1")
+
+    def test_post_valid_new_private_thread(self):
+        new_thread = {
+            "title": "titre_2",
+            "visibdata": str(self.user2.id),
+            "skills": "422230 422231",
+            "content": "message_2",
+            "visibility": "private"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        new_thread = Thread.objects.order_by('-pk')[0]
+        last_msg = Message.objects.order_by('-pk')[0]
+        self.assertEquals(response.status_code, 302)
+        self.assertEquals(new_thread.title, "titre_2")
+        self.assertEquals(last_msg.content, "message_2")
+
+    def test_post_valid_new_class_thread(self):
+        new_thread = {
+            "title": "titre_3",
+            "visibdata": str(self.lesson.id),
+            "skills": "422230 422231",
+            "content": "message_3",
+            "visibility": "class"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        new_thread = Thread.objects.order_by('-pk')[0]
+        last_msg = Message.objects.order_by('-pk')[0]
+        self.assertEquals(response.status_code, 302)
+        self.assertEquals(new_thread.title, "titre_3")
+        self.assertEquals(last_msg.content, "message_3")
+
+    def test_post_invalid_new_thread_blank_req_fields(self):
+        thread_cnt_before = Thread.objects.all().count()
+        msg_cnt_before = Message.objects.all().count()
+        new_thread = {
+            "title": "",
+            "visibdata": "",
+            "skills": "",
+            "content": "",
+            "visibility": ""
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
         self.assertEquals(response.status_code, 200)
+        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
+        self.assertEquals(msg_cnt_before, Message.objects.all().count())
+
+    def test_post_invalid_new_thread_unknown_skills(self):
+        thread_cnt_before = Thread.objects.all().count()
+        msg_cnt_before = Message.objects.all().count()
+        new_thread = {
+            "title": "titre_5",
+            "visibdata": str(self.lesson.id),
+            "skills": "l m",
+            "content": "message_5",
+            "visibility": "class"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
+        self.assertEquals(msg_cnt_before, Message.objects.all().count())
+
+    def test_post_invalid_new_private_thread_unknown_recipient(self):
+        thread_cnt_before = Thread.objects.all().count()
+        msg_cnt_before = Message.objects.all().count()
+        new_thread = {
+            "title": "titre_6",
+            "visibdata": "unknown",
+            "skills": "422230 422231",
+            "content": "message_6",
+            "visibility": "private"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
+        self.assertEquals(msg_cnt_before, Message.objects.all().count())
+
+    def test_post_invalid_new_class_thread_unknown_class(self):
+        thread_cnt_before = Thread.objects.all().count()
+        msg_cnt_before = Message.objects.all().count()
+        new_thread = {
+            "title": "titre_7",
+            "visibdata": "unknown",
+            "skills": "422230 422231",
+            "content": "message_7",
+            "visibility": "class"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
+        self.assertEquals(msg_cnt_before, Message.objects.all().count())
+
+    def test_post_invalid_new_public_thread_unknown_professor(self):
+        thread_cnt_before = Thread.objects.all().count()
+        msg_cnt_before = Message.objects.all().count()
+        new_thread = {
+            "title": "titre_8",
+            "visibdata": "unknown",
+            "skills": "422230 422231",
+            "content": "message_7",
+            "visibility": "public"
+        }
+        response = self.c.post('/forum/write/', data=new_thread)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(thread_cnt_before, Thread.objects.all().count())
+        self.assertEquals(msg_cnt_before, Message.objects.all().count())
 
 
 class TestGetWritePage(TestCase):
+    def setUp(self):
+        self.user = User(username='auth_user')
+        self.user.set_password('12345')
+        self.user.save()
+        self.c = Client()
+        self.c.login(username='auth_user', password='12345')
+
     def test_get_write_page(self):
-        c = Client()
-        # TODO: temporary id for temporary test
-        response = c.get('/forum/write/')
+        response = self.c.get('/forum/write/')
         self.assertEquals(response.status_code, 200)
