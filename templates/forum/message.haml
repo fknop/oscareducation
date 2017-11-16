@@ -4,7 +4,7 @@
     %span.flex-spacer
     %span.message-date
       %a.message-anchor{href: "#message-{{message.id}}"} {{message.created_date}}
-  .panel-body{:class => "message-content"}= message.content
+  .panel-body{:class => "message-content"}= message.content|truncatewords:50 
   .panel-footer
     %span.flex-spacer
     -if user|can_edit:message
