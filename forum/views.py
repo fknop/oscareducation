@@ -129,23 +129,33 @@ def get_skills(request):
     else:
         lessons = []
 
-    skills = []
+    skills = set()
+    sections = set()
     stages = [lesson.stage for lesson in lessons]
     for stage in stages:
         for skill in stage.skills.all():
-            skills.append(skill)
+            skills.add(skill)
+            sections.add(skill.section)
 
-    skills = list(set(skills))
+    skills = list(skills)
     skills.sort(key=lambda x: x.name)
-    return skills
+
+    sections = list(sections)
+    sections.sort(key=lambda x: x.name)
+
+    return skills, sections
 
 
 def get_create_thread_page(request):
+
+    skills, sections = get_skills(request)
+
     return render(request, "forum/new_thread.haml", {'errors': [], "data": {
         'title': "",
         'visibility': "private",
         'visibdata': "",
-        'skills': get_skills(request),
+        'skills': skills,
+        'sections': sections,
         'content': ""
     }})
 
@@ -158,7 +168,7 @@ def post_create_thread(request):
 
         with transaction.atomic():
 
-            thread = Thread(title=params['title'], author=params['author'])
+            thread = Thread(title=params['title'], author=params['author'], section_id=params['section'])
 
             if params['visibility'] == 'private':
                 thread.recipient = params['recipient']
@@ -199,6 +209,11 @@ def deepValidateAndFetch(request, errors):
 
     params['visibility'] = request.POST.get('visibility')
     params['skills_fetched'] = False
+
+    try:
+        params['section'] = form.cleaned_data['section']
+    except:
+        params['section'] = None
 
     try:
         params['skills'] = form.cleaned_data['skills']

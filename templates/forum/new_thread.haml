@@ -73,6 +73,13 @@
                   %span= skill.name
 
 
+            %label{:for => 'section'} UAA
+            %select.form-control#section-select{:name => 'section'}
+              - for section in data.sections
+                %option{:value => "#{section.id}"}
+                  %span= section.name
+
+
           %div
             %label{:for => 'content'} Message
             - for err in errors
