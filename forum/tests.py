@@ -350,7 +350,7 @@ class TestPostThread(TestCase):
         new_thread = {
             "title": "titre_1",
             "visibdata": str(self.teacher.id),
-            "skills": "422230 422231",
+            "skills": [422230, 422231],
             "content": "message_1",
             "visibility": "public"
         }
@@ -365,7 +365,7 @@ class TestPostThread(TestCase):
         new_thread = {
             "title": "titre_2",
             "visibdata": str(self.user2.id),
-            "skills": "422230 422231",
+            "skills": [422230, 422231],
             "content": "message_2",
             "visibility": "private"
         }
@@ -380,7 +380,7 @@ class TestPostThread(TestCase):
         new_thread = {
             "title": "titre_3",
             "visibdata": str(self.lesson.id),
-            "skills": "422230 422231",
+            "skills": [422230, 422231],
             "content": "message_3",
             "visibility": "class"
         }
@@ -412,7 +412,7 @@ class TestPostThread(TestCase):
         new_thread = {
             "title": "titre_5",
             "visibdata": str(self.lesson.id),
-            "skills": "l m",
+            "skills": ["l", "m"],
             "content": "message_5",
             "visibility": "class"
         }
@@ -442,7 +442,7 @@ class TestPostThread(TestCase):
         new_thread = {
             "title": "titre_7",
             "visibdata": "unknown",
-            "skills": "422230 422231",
+            "skills": [422230, 422231],
             "content": "message_7",
             "visibility": "class"
         }
@@ -457,7 +457,7 @@ class TestPostThread(TestCase):
         new_thread = {
             "title": "titre_8",
             "visibdata": "unknown",
-            "skills": "422230 422231",
+            "skills": [422230, 422231],
             "content": "message_7",
             "visibility": "public"
         }

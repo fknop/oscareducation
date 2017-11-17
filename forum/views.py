@@ -167,7 +167,6 @@ def post_create_thread(request):
     if len(errors) == 0:
 
         with transaction.atomic():
-            print(params['section'])
             thread = Thread(title=params['title'], author=params['author'], section_id=params['section'])
 
             if params['visibility'] == 'private':
@@ -194,17 +193,19 @@ def post_create_thread(request):
         return render(request, "forum/new_thread.haml", {"errors": errors, "data": params})
 
 
+
+
 class ThreadForm(forms.Form):
     section = forms.CharField()
     title = forms.CharField()
     visibdata = forms.CharField()
-    skills = forms.CharField()
     content = forms.CharField()
 
 
 def deepValidateAndFetch(request, errors):
     params = {}
     form = ThreadForm(request.POST)
+
 
     form.is_valid()
 
@@ -216,10 +217,11 @@ def deepValidateAndFetch(request, errors):
     except:
         params['section'] = None
 
+
     try:
-        params['skills'] = form.cleaned_data['skills']
+        params['skills'] = request.POST.getlist('skills')
     except:
-        params['skills'] = ""
+        params['skills'] = []
 
     try:
         params['title'] = form.cleaned_data['title']
@@ -264,9 +266,9 @@ def deepValidateAndFetch(request, errors):
             except:
                 errors.append({"field": "visibdata", "msg": "Professeur inconnu"})
 
-    if params['skills'] != "":
+    if len(params['skills']) > 0:
         try:
-            params['fetched_skills'] = Skill.objects.filter(pk__in=params['skills'].encode('utf8').split(" "))
+            params['fetched_skills'] = Skill.objects.filter(pk__in=params['skills'])
             params['skills_fetched'] = True
         except:
             errors.append(
