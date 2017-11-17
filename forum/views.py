@@ -9,7 +9,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.http import require_POST, require_GET
 from channels import Group
-from notification.notification_manager import MSG_TYPES, sendNotification
+from notification.notif_types import NOTIF_TYPES
+from notification.notification_manager import NOTIF_MEDIUM, sendNotification
 
 # Create your views here.
 from forum.models import Thread, Message
@@ -25,11 +26,8 @@ class MessageReplyForm(forms.ModelForm):
         model = Message
         fields = ('content',)
 
-
 def require_login(function):
     return login_required(function, login_url="/accounts/usernamelogin")
-
-
 
 @require_GET
 @require_login
@@ -39,7 +37,6 @@ def forum_dashboard(request):
         "user": request.user,
         "threads": threads
     })
-
 
 @require_login
 def create_thread(request):
@@ -88,18 +85,45 @@ def post_create_thread(request):
                 thread.skills = params['fetched_skills']
                 thread.save()
 
+            endNotificationForNewThread(thread)
+
             original_message = Message(content=params['content'], thread=thread, author=params['author'])
             original_message.save()
 
-        sendNotification(to, {
-            "type": MSG_TYPES.NEW_FORUM_THREAD,
-            "id": thread.id
-        })
+            sendNotificationForNewMessage(original_message)
 
         return redirect('/forum/thread/' + str(thread.id))
 
     else:
         return render(request, "forum/new_thread.haml", { "errors" : errors, "data": params })
+
+def sendNotificationForNewThread(thread):
+
+    notif = {
+        "medium": NOTIF_MEDIUM["WS"],
+        "params": {
+            "from": params['author'],
+            "thread_id": str(thread.id)
+        }
+    }
+
+    if visibility == "public":
+        notifType["type"] = NOTIF_TYPES["NEW_PUBLIC_FORUM_THREAD"]
+        notifType["audience"] = []
+    elif visibility == "class":
+        notifType["type"] = NOTIF_TYPES["NEW_CLASS_FORUM_THREAD"]
+        notifType["audience"] = []
+    elif visibility == "private":
+        notifType["type"] = NOTIF_TYPES["NEW_PRIVATE_FORUM_THREAD"]
+        notifType["audience"] = []
+
+    sendNotification(notif)
+
+def sendNotificationForNewMessage():
+
+    notif
+
+    sendNotification(notif)
 
 class ThreadForm(forms.Form):
     title = forms.CharField()

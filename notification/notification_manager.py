@@ -3,49 +3,49 @@ import json
 from __future__ import unicode_literals
 
 from .models import Notification
+from .notif_types import NOTIF_TYPES
+from .ws_notification import sendWSNotif
 
-MSG_MEDIUM = {
-    "WS": "WS"
+NOTIF_MEDIUM = {
+    "WS": "ws",  # Web Sockets
+#   "EMAIL": "email"
 }
 
-MSG_TYPES = {
-    "NEW_PUBLIC_FORUM_THREAD": "new_public_forum_thread",
-    "NEW_PUBLIC_FORUM_MESSAGE": "new_public_forum_message",
-    "NEW_PRIVATE_FORUM_THREAD": "new_private_forum_thread",
-    "NEW_PRIVATE_FORUM_MESSAGE": "new_private_forum_message"
-}
-
-def sendNotification(user_to, notification):
+# @param notification structure:
+#
+# {
+#    "medium": notification_manager.NOTIF_MEDIUM,
+#
+#    "type": notif_types.NOTIF_TYPES,
+#
+#    // recipient of notif, depends on medium; per ex for WS, list of groups
+#    "audience": [...],
+#
+#    // data relatives to notification type, depends on notif type;
+#    // per ex for NEW_PRIVATE_FORUM_THREAD: { "author": int }
+#    "params": {...},
+# }
+#
+# all fields are required.
+def sendNotification(notification):
 
     persistNotif(notification)
 
-    if notification["type"] == MSG_TYPES["NEW_PUBLIC_FORUM_THREAD"]:
+    if MSG_MEDIUM["WS"] in notification["medium"]
+        sendWSNotif(notification)
 
-    elif notification["type"] == MSG_TYPES["NEW_PUBLIC_FORUM_MESSAGE"]:
+#def persistNotif(notification):
 
-    elif notification["type"] == MSG_TYPES["NEW_PUBLIC_FORUM_THREAD"]:
+#    if notification["type"] == MSG_TYPES["NEW_PUBLIC_FORUM_THREAD"]:
 
-    elif notification["type"] == MSG_TYPES["NEW_PRIVATE_FORUM_THREAD"]:
+#    elif notification["type"] == MSG_TYPES["NEW_PUBLIC_FORUM_MESSAGE"]:
 
-    elif notification["type"] == MSG_TYPES["NEW_PRIVATE_FORUM_MESSAGE"]:
+#    elif notification["type"] == MSG_TYPES["NEW_PUBLIC_FORUM_THREAD"]:
 
-    if notification["medium"] == MSG_MEDIUM["WS"]
-        Group("notification-user-%s" % user_to).send({
-            "text": json.dumps({
-                "type": notification["type"],
-                "params": params,
-                "redirectOnClick": notification["redirectOnClick"]
-            })
-        })
+#    elif notification["type"] == MSG_TYPES["NEW_PRIVATE_FORUM_THREAD"]:
 
-def persistNotif(notification):
+#    elif notification["type"] == MSG_TYPES["NEW_PRIVATE_FORUM_MESSAGE"]:
 
-    if notification["type"] == MSG_TYPES["NEW_PUBLIC_FORUM_THREAD"]:
+#    elif notification["type"] == MSG_TYPES["NEW_class_FORUM_THREAD"]:
 
-    elif notification["type"] == MSG_TYPES["NEW_PUBLIC_FORUM_MESSAGE"]:
-
-    elif notification["type"] == MSG_TYPES["NEW_PUBLIC_FORUM_THREAD"]:
-
-    elif notification["type"] == MSG_TYPES["NEW_PRIVATE_FORUM_THREAD"]:
-
-    elif notification["type"] == MSG_TYPES["NEW_PRIVATE_FORUM_MESSAGE"]:
+#    elif notification["type"] == MSG_TYPES["NEW_class_FORUM_MESSAGE"]:

@@ -69,7 +69,7 @@ INSTALLED_APPS = (
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "asgiref.inmemory.ChannelLayer",
-        "ROUTING": "forum.routing.channel_routing",
+        "ROUTING": "notification.web_sockets.routing.channel_routing",
     },
 }
 
