@@ -8,15 +8,18 @@ from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.http import require_POST, require_GET
+from django.http import JsonResponse
 
 # Create your views here.
 from forum.models import Thread, Message
 
 from promotions.models import Lesson
 from skills.models import Skill
-from users.models import Professor
+from resources.models import Resource
+from users.models import Professor, Student
 
 from dashboard import get_thread_set
+
 
 class MessageReplyForm(forms.ModelForm):
     class Meta:
@@ -26,7 +29,6 @@ class MessageReplyForm(forms.ModelForm):
 
 def require_login(function):
     return login_required(function, login_url="/accounts/usernamelogin")
-
 
 
 @require_GET
@@ -51,17 +53,139 @@ def create_thread(request):
     if request.method == 'POST':
         return post_create_thread(request)
 
+
+@require_GET
+@require_login
+def get_users(request):
+    users = [
+        {
+            "id": user.id,
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name
+        } for user in User.objects.all()
+    ]
+
+    return JsonResponse({"data": users})
+
+
+@require_GET
+@require_login
+def get_professors(request):
+    lessons = None
+    user = request.user
+    professor = None
+    student = None
+    professors = []
+    if Student.objects.filter(user=user).exists():
+        student = Student.objects.get(user=user)
+        lessons = student.lesson_set.all()
+    elif Professor.objects.filter(user=user).exists():
+        professor = Professor.objects.get(user=user)
+        lessons = professor.lesson_set.all()
+
+    for lesson in lessons:
+        for prof in lesson.professors.all():
+            if (professor is not None and professor.id != prof.id) or professor is None:
+                professors.append({
+                    "id": prof.id,
+                    "username": prof.user.username,
+                    "first_name": prof.user.first_name,
+                    "last_name": prof.user.last_name
+                })
+
+    return JsonResponse({"data": professors})
+
+
+@require_login
+@require_GET
+def get_lessons(request):
+    user = request.user
+    if Student.objects.filter(user=user).exists():
+        student = Student.objects.get(user=user)
+        lessons = student.lesson_set.all()
+    elif Professor.objects.filter(user=user).exists():
+        professor = Professor.objects.get(user=user)
+        lessons = professor.lesson_set.all()
+
+    lesson_list = [
+        {
+            "id": lesson.id,
+            "name": lesson.name
+        }
+        for lesson in lessons
+    ]
+
+    return JsonResponse({"data": lesson_list})
+
+
+@require_login
+@require_GET
+def get_resources_by_skills(request):
+    requested_skills = request.GET.getlist('skills[]')
+    skills = Skill.objects.filter(pk__in=requested_skills)
+
+    resources = set()
+    for skill in skills:
+        for resource in skill.resource.all():
+            resources.add(resource)
+
+    resources_list = []
+    for resource in resources:
+        resources_list.append(
+            {
+                "id": resource.id,
+                "content": resource.content
+            }
+        )
+    return JsonResponse({"data": resources_list})
+
+
+def get_resource(request):
+    requested_resource = request.GET.get('resource', None)
+    if requested_resource:
+        resource = Resource.objects.get(pk=requested_resource)
+        return {
+            "id": resource.id,
+            "title": resource.content.get('title', '')
+        }
+    return None
+
+
+def get_skills(request):
+    user = request.user
+    if Student.objects.filter(user=user).exists():
+        student = Student.objects.get(user=user)
+        lessons = student.lesson_set.all()
+    elif Professor.objects.filter(user=user).exists():
+        professor = Professor.objects.get(user=user)
+        lessons = professor.lesson_set.all()
+    else:
+        lessons = []
+
+    skills = []
+    stages = [lesson.stage for lesson in lessons]
+    for stage in stages:
+        for skill in stage.skills.all():
+            skills.append(skill)
+
+    skills = list(set(skills))
+    skills.sort(key=lambda x: x.name)
+    return skills
+
+
 def get_create_thread_page(request):
-    return render(request, "forum/new_thread.haml", { 'errors' : [], "data": {
-            'title' : request.GET.get('title', ''),
-            'visibility': request.GET.get('visibility', 'private'),
-            'visibdata' : request.GET.get('visibdata', ''),
-            'skills' : request.GET.getlist('skills', ''),
-            'content' : request.GET.get('content', '')
-        } })
+    return render(request, "forum/new_thread.haml", {'errors': [], "data": {
+        'title': request.GET.get('title', ''),
+        'visibility': request.GET.get('visibility', 'private'),
+        'visibdata': request.GET.get('visibdata', ''),
+        'skills': get_skills(request),
+        'content': "",
+        'resource': get_resource(request)
+    }})
+
 
 def post_create_thread(request):
-
     errors = []
     params = deepValidateAndFetch(request, errors)
 
@@ -92,7 +216,8 @@ def post_create_thread(request):
         return redirect('/forum/thread/' + str(thread.id))
 
     else:
-        return render(request, "forum/new_thread.haml", { "errors" : errors, "data": params })
+        return render(request, "forum/new_thread.haml", {"errors": errors, "data": params})
+
 
 class ThreadForm(forms.Form):
     title = forms.CharField()
@@ -100,8 +225,8 @@ class ThreadForm(forms.Form):
     skills = forms.CharField()
     content = forms.CharField()
 
-def deepValidateAndFetch(request, errors):
 
+def deepValidateAndFetch(request, errors):
     params = {}
     form = ThreadForm(request.POST)
 
@@ -119,51 +244,52 @@ def deepValidateAndFetch(request, errors):
         params['title'] = form.cleaned_data['title']
     except:
         params['title'] = ""
-        errors.append({ "field": "title", "msg" :"Le titre du sujet ne peut pas être vide"})
+        errors.append({"field": "title", "msg": "Le titre du sujet ne peut pas être vide"})
 
     try:
         params['visibdata'] = form.cleaned_data['visibdata']
     except:
         params['visibdata'] = ""
-        errors.append({ "field": "visibdata", "msg" :"Ce champs ne peut pas être vide"})
+        errors.append({"field": "visibdata", "msg": "Ce champs ne peut pas être vide"})
 
     try:
         params['content'] = form.cleaned_data['content']
     except:
         params['content'] = ""
-        errors.append({ "field": "content", "msg" :"Le premier message du sujet ne peut pas être vide"})
+        errors.append({"field": "content", "msg": "Le premier message du sujet ne peut pas être vide"})
 
     # Shouldn't fail with require_login
     params['author'] = User.objects.get(pk=request.user.id)
 
     if params['visibility'] not in ["private", "class", "public"]:
-        errors.append({ "field": "visibility", "msg" :"Type de visibilité invalide"})
+        errors.append({"field": "visibility", "msg": "Type de visibilité invalide"})
 
     if params['visibdata'] != "":
         if params['visibility'] == "private":
             try:
                 params['recipient'] = User.objects.get(pk=params['visibdata'])
             except:
-                errors.append({ "field": "visibdata", "msg" :"Destinataire inconnu"})
+                errors.append({"field": "visibdata", "msg": "Destinataire inconnu"})
 
         if params['visibility'] == "class":
             try:
                 params['lesson'] = Lesson.objects.get(pk=params['visibdata'])
             except:
-                errors.append({ "field": "visibdata", "msg" :"Classe inconnue"})
+                errors.append({"field": "visibdata", "msg": "Classe inconnue"})
 
         if params['visibility'] == "public":
             try:
-                params['professor'] =  Professor.objects.get(pk=params['visibdata'])
+                params['professor'] = Professor.objects.get(pk=params['visibdata'])
             except:
-                errors.append({ "field": "visibdata", "msg" :"Professeur inconnu"})
+                errors.append({"field": "visibdata", "msg": "Professeur inconnu"})
 
     if params['skills'] != "":
         try:
             params['fetched_skills'] = Skill.objects.filter(pk__in=params['skills'].encode('utf8').split(" "))
             params['skills_fetched'] = True
         except:
-            errors.append({ "field": "skills", "msg" :"Compétence(s) inconnue(s) ou mal formée(s) (format: id1 id2 ...)"})
+            errors.append(
+                {"field": "skills", "msg": "Compétence(s) inconnue(s) ou mal formée(s) (format: id1 id2 ...)"})
 
     return params
 

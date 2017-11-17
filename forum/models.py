@@ -13,6 +13,7 @@ class Thread(models.Model):
     author = models.ForeignKey(User, related_name="thread_author")
     title = models.CharField(max_length=255)
     skills = models.ManyToManyField("skills.Skill", blank=True)
+    resource = models.ForeignKey("resources.Resource", null=True, blank=True, related_name="thread_resource")
 
     recipient = models.ForeignKey(User, null=True, related_name="thread_recipient")
     professor = models.ForeignKey("users.Professor", null=True)
