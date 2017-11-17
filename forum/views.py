@@ -85,45 +85,51 @@ def post_create_thread(request):
                 thread.skills = params['fetched_skills']
                 thread.save()
 
-            endNotificationForNewThread(thread)
+            sendWSNotificationForNewThread(thread)
 
             original_message = Message(content=params['content'], thread=thread, author=params['author'])
             original_message.save()
 
-            sendNotificationForNewMessage(original_message)
+            #sendWSNotificationForNewMessage(original_message)
 
         return redirect('/forum/thread/' + str(thread.id))
 
     else:
         return render(request, "forum/new_thread.haml", { "errors" : errors, "data": params })
 
-def sendNotificationForNewThread(thread):
+def sendWSNotificationForNewThread(thread):
 
     notif = {
         "medium": NOTIF_MEDIUM["WS"],
+        "audience": [],
         "params": {
-            "from": params['author'],
-            "thread_id": str(thread.id)
+            "thread": thread
         }
     }
 
     if visibility == "public":
+
         notifType["type"] = NOTIF_TYPES["NEW_PUBLIC_FORUM_THREAD"]
-        notifType["audience"] = []
+
+        try:
+            for l in thread.author.lesson_set.all()
+                notifType["audience"].append('notification-class-' + str(l.id))
+        except
+            pass
+
     elif visibility == "class":
         notifType["type"] = NOTIF_TYPES["NEW_CLASS_FORUM_THREAD"]
-        notifType["audience"] = []
+        notifType["audience"] = [ 'notification-class-' + thread.lesson.id ]
     elif visibility == "private":
         notifType["type"] = NOTIF_TYPES["NEW_PRIVATE_FORUM_THREAD"]
-        notifType["audience"] = []
+        notifType["audience"] = [ 'notification-user-' + thread.recipient.id ]
 
     sendNotification(notif)
 
 def sendNotificationForNewMessage():
-
-    notif
-
-    sendNotification(notif)
+    pass
+    #notif
+    #sendNotification(notif)
 
 class ThreadForm(forms.Form):
     title = forms.CharField()
@@ -164,7 +170,6 @@ def deepValidateAndFetch(request, errors):
         params['content'] = ""
         errors.append({ "field": "content", "msg" :"Le premier message du sujet ne peut pas être vide"})
 
-    # Shouldn't fail with require_login
     params['author'] = User.objects.get(pk=request.user.id)
 
     if params['visibility'] not in ["private", "class", "public"]:

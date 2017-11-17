@@ -1,6 +1,12 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
+from django.db import models
+from django.contrib.auth.models import User
 
-class MessageAttachment(models.Model):
-    name = models.CharField(max_length=255)  # The name of the uploaded file
-    file = models.FileField()
-    message = models.ForeignKey("Message")
+class Notification(models.Model):
+    created_date = models.DateTimeField(auto_now_add=True, db_index=True)
+    audience = models.TextField()
+    medium = models.CharField(max_length=255)
+    notif_type = models.CharField(max_length=255)
+    params = models.TextField()
