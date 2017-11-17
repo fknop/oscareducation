@@ -1054,27 +1054,36 @@ class SeleniumDashboardTest(SeleniumTestCase):
         self.wd.get(self.live_server_url)
 
         
-        
+        #time.sleep(3)
         self.wd.find_element_by_xpath('//a[@href="/accounts/usernamelogin/"]').click()
+        #time.sleep(3)
         self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
+        #time.sleep(3)
         self.wd.find_element_by_id('id_username').send_keys("Vince")
-        
+        #time.sleep(2)
         
         
         self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2)
         self.wd.find_element_by_id("id_password").send_keys('12345')
+        #time.sleep(2)
         self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
-        
+        #time.sleep(2) 
         self.wd.find_element_by_link_text('English')
+        #time.sleep(2)
         self.wd.find_element_by_link_text('French')
+        #time.sleep(2)
         self.wd.get(self.live_server_url + '/forum/')
         #html body div.fond div.container.centralcontainer div.container-fluid.boxclasseTitle div.center table.table.table-hover tbody tr#42.thread td p.title
         #Information regarding w/e
         #<p class="title">Information regarding w/e</p>
         ##\34 2 > td:nth-child(1) > p:nth-child(1)
+        #time.sleep(2)
         self.wd.find_element_by_xpath("//*[text()[contains(., 'Help')]]")
-        time.sleep(20)
+        #time.sleep(2)
         self.wd.find_element_by_xpath("//*[text()[contains(., 'Send help')]]")
+        #time.sleep(2)
         self.wd.find_element_by_xpath("//*[text()[contains(., 'Information regarding w/e')]]")
+        #time.sleep(2)
         self.wd.find_element_by_xpath("//*[text()[contains(., 'Information regarding spam')]]")
-        
+        #time.sleep(2)
