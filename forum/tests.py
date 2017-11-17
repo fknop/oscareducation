@@ -19,6 +19,7 @@ from views import create_thread, reply_thread
 from django.test import LiveServerTestCase
 from selenium_intro.selenium_tests.test import SeleniumTestCase
 from selenium_intro.selenium_tests.webdriver import CustomWebDriver
+from selenium.common.exceptions import NoSuchElementException
 from django.core.urlresolvers import reverse
 
 class ThreadModelTest(TestCase):
@@ -653,4 +654,224 @@ class SeleniumDashboardTest(SeleniumTestCase):
         self.wd.find_element_by_xpath("//*[text()[contains(., 'Information regarding w/e')]]")
         #time.sleep(2)
         self.wd.find_element_by_xpath("//*[text()[contains(., 'Information regarding spam')]]")
+        #time.sleep(2)
+
+class Scenario2Test(SeleniumTestCase):
+
+    def setUp(self):
+        
+        self.user = User(username="Bob")
+        self.user.set_password('12345')
+        self.user.save()
+        self.second_user = User(username="Kevin")
+        self.second_user.save()
+        self.teacher_user = User(username="Vince")
+        self.teacher_user.set_password('12345')
+        self.teacher_user.save()
+        self.second_teacher_user = User(username="Nicolas")
+        self.second_teacher_user.save()
+
+        self.student = Student(user=self.user, is_pending=False)
+        self.student.save()
+        self.second_student = Student(user=self.second_user)
+        self.second_student.save()
+        self.teacher = Professor(user=self.teacher_user, is_pending=False)
+        self.teacher.save()
+        self.second_teacher = Professor(user=self.second_teacher_user)
+        self.second_teacher.save()
+
+        self.stage = Stage(id=1, name="Stage1", level=1)
+        self.stage.save()
+        self.second_stage = Stage(id=2, name="Stage2", level=1)
+        self.second_stage.save()
+
+        self.lesson = Lesson(id=1, name="English", stage_id=1)
+        self.lesson.save()
+        self.lesson.students.add(self.student)
+        self.lesson.students.add(self.second_student)
+        self.lesson.professors.add(self.teacher)
+        self.lesson.save()
+
+        self.second_lesson = Lesson(id=2, name="French", stage_id=2)
+        self.second_lesson.save()
+        self.second_lesson.students.add(self.second_student)
+        self.second_lesson.professors.add(self.teacher)
+        self.second_lesson.save()
+
+        self.thread = Thread(title="Bob, replytothis", author=self.user, recipient=self.teacher_user)
+        self.thread.save()
+
+        self.second_thread = Thread(title="Send help", author=self.second_user, lesson=self.second_lesson)
+        self.second_thread.save()
+
+        self.third_thread = Thread(title="Information regarding w/e", author=self.teacher_user, professor=self.teacher)
+        self.third_thread.save()
+
+        self.fourth_thread = Thread(title="Information regarding spam", author=self.teacher_user,
+                                    professor=self.teacher)
+        self.fourth_thread.save()
+
+        # Instantiating the WebDriver will load your browser
+        self.wd = CustomWebDriver()
+
+    def tearDown(self):
+        self.wd.quit()
+    def test_login(self):
+        
+        self.wd.get(self.live_server_url)
+        #time.sleep(3)
+        self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
+        #time.sleep(3)
+        self.wd.find_element_by_id('id_username').send_keys("Bob")
+        #time.sleep(2)
+        
+        
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2)
+        self.wd.find_element_by_id("id_password").send_keys('12345')
+        #time.sleep(2)
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2)
+        self.wd.get(self.live_server_url + '/forum/')
+        #html body div.fond div.container.centralcontainer div.container-fluid.boxclasseTitle div.center table.table.table-hover tbody tr#42.thread td p.title
+        #Information regarding w/e
+        #<p class="title">Information regarding w/e</p>
+        ##\34 2 > td:nth-child(1) > p:nth-child(1)
+        #time.sleep(2)
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Bob, replytothis')]]").click()
+        
+        self.wd.find_element_by_xpath('//textarea[@class="form-control"]').send_keys("this is not a reply")
+        self.wd.find_element_by_xpath('//button[@id="btn"]').click()
+        time.sleep(2)
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'this is not a reply')]]")
+        
+        
+        #time.sleep(2)
+class Scenario1Test(SeleniumTestCase):
+
+    def setUp(self):
+        
+        self.user = User(username="Bob")
+        self.user.set_password('12345')
+        self.user.save()
+        self.second_user = User(username="Alice")
+        self.second_user.set_password('12345')
+        self.second_user.save()
+        self.teacher_user = User(username="John")
+        self.teacher_user.set_password('12345')
+        self.teacher_user.save()
+        self.second_teacher_user = User(username="Nicolas")
+        self.second_teacher_user.save()
+
+        self.student = Student(user=self.user, is_pending=False)
+        self.student.save()
+        self.second_student = Student(user=self.second_user, is_pending=False)
+        self.second_student.save()
+        self.teacher = Professor(user=self.teacher_user, is_pending=False)
+        self.teacher.save()
+        self.second_teacher = Professor(user=self.second_teacher_user)
+        self.second_teacher.save()
+
+        self.stage = Stage(id=1, name="Stage1", level=1)
+        self.stage.save()
+        self.second_stage = Stage(id=2, name="Stage2", level=1)
+        self.second_stage.save()
+
+        self.lesson = Lesson(id=1, name="English", stage_id=1)
+        self.lesson.save()
+        self.lesson.students.add(self.student)
+        self.lesson.students.add(self.second_student)
+        self.lesson.professors.add(self.teacher)
+        self.lesson.save()
+
+        self.second_lesson = Lesson(id=2, name="French", stage_id=2)
+        self.second_lesson.save()
+        self.second_lesson.students.add(self.second_student)
+        self.second_lesson.professors.add(self.teacher)
+        self.second_lesson.save()
+
+        self.thread = Thread(title="Bob, replytothis", author=self.user, recipient=self.teacher_user)
+        self.thread.save()
+
+        self.second_thread = Thread(title="Send help", author=self.second_user, lesson=self.second_lesson)
+        self.second_thread.save()
+
+        self.third_thread = Thread(title="Information regarding w/e", author=self.teacher_user, professor=self.teacher)
+        self.third_thread.save()
+
+        self.fourth_thread = Thread(title="Information regarding spam", author=self.teacher_user,
+                                    professor=self.teacher)
+        self.skill1 = Skill(code=422230, name="Compter deux par deux", description="")
+        self.skill1.save()
+        self.skill2 = Skill(code=422231, name="Lacer ses chaussures", description="")
+        self.skill2.save()
+        self.fourth_thread.save()
+
+        # Instantiating the WebDriver will load your browser
+        self.wd = CustomWebDriver()
+
+    def tearDown(self):
+        self.wd.quit()
+    def test_login(self):
+        
+        self.wd.get(self.live_server_url)
+        #time.sleep(3)
+        self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
+        #time.sleep(3)
+        self.wd.find_element_by_id('id_username').send_keys("Bob")
+        #time.sleep(2)
+        
+        
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2)
+        self.wd.find_element_by_id("id_password").send_keys('12345')
+        #time.sleep(2)
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2)
+        self.wd.get(self.live_server_url + '/forum/write/')
+        #time.sleep(2)
+        self.wd.find_element_by_xpath('//input[@name="title"]').send_keys("J ai une question mr John")
+        self.wd.find_element_by_xpath('//input[@value="private"]').click()
+        self.wd.find_element_by_xpath('//input[@name="visibdata"]').send_keys(str(self.teacher_user.id))
+        self.wd.find_element_by_xpath('//input[@name="skills"]').send_keys(str(422230))
+        self.wd.find_element_by_xpath('//textarea[@name="content"]').send_keys("je suis nul en Calcul, please Help")
+        
+        self.wd.find_element_by_xpath('//button[@type="submit"]').click()
+        
+        self.wd.get(self.live_server_url + '/accounts/logout/')
+        self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
+        self.wd.find_element_by_id('id_username').send_keys("John")
+        #time.sleep(2)
+        
+        
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2)
+        self.wd.find_element_by_id("id_password").send_keys('12345')
+        #time.sleep(2)
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        
+        self.wd.get(self.live_server_url + '/forum/')
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'J ai une question mr John')]]").click()
+        
+        self.wd.find_element_by_xpath('//textarea[@class="form-control"]').send_keys("Tu es trop nul en Math, rien à faire")
+        self.wd.find_element_by_xpath('//button[@id="btn"]').click()
+        time.sleep(2)
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Tu es trop nul en Math, rien à faire')]]")
+        
+        self.wd.get(self.live_server_url + '/accounts/logout/')
+        self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
+        self.wd.find_element_by_id('id_username').send_keys("Alice")
+        #time.sleep(2)
+        
+        
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2)
+        self.wd.find_element_by_id("id_password").send_keys('12345')
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        
+        self.wd.get(self.live_server_url + '/forum/')
+        with self.assertRaises(NoSuchElementException):
+            self.wd.find_element_by_xpath("//*[text()[contains(., 'J ai une question mr John')]]")
+        
+        
         #time.sleep(2)
