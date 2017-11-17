@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import json
 import pickle
-from __future__ import unicode_literals
 
 from notification.models import Notification
 from .notif_types import NOTIF_TYPES
@@ -30,16 +31,16 @@ NOTIF_MEDIUM = {
 # all fields are required.
 def sendNotification(notification):
 
-    persistNotif(notification)
+    #persistNotif(notification)
 
-    if MSG_MEDIUM["WS"] in notification["medium"]
+    if notification["medium"] == NOTIF_MEDIUM["WS"]:
         sendWSNotif(notification)
 
 def persistNotif(notification):
 
     serializedAudience = ""
 
-    for a in notification["audience"]
+    for a in notification["audience"]:
         serializedAudience += a + " "
 
     Notification(

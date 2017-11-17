@@ -1,11 +1,15 @@
-# In consumers.py
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+
 from channels import Channel, Group
 from channels.sessions import channel_session
 from channels.auth import channel_session_user, channel_session_user_from_http
-from from users.models import Student, Professor
+from users.models import Student, Professor
 
 @channel_session_user_from_http
 def ws_add(message):
+    print message.user.id
     message.reply_channel.send({"accept": True})
     Group("notification-user-%s" % message.user.id).add(message.reply_channel)
     Group("notification-user-all").add(message.reply_channel)
@@ -13,16 +17,16 @@ def ws_add(message):
 
 def addUserInItsClassGroups(message):
 
-    try
-        for lesson in Student.objects.get(pk=message.user.id).lesson_set.all()
+    try:
+        for lesson in Student.objects.get(pk=message.user.id).lesson_set.all():
             Group("notification-class-%s" % lesson.id).add(message.reply_channel)
-    except
+    except:
         pass
 
-    try
-        for lesson in Professor.objects.get(pk=message.user.id).lesson_set.all()
+    try:
+        for lesson in Professor.objects.get(pk=message.user.id).lesson_set.all():
             Group("notification-class-%s" % lesson.id).add(message.reply_channel)
-    except
+    except:
         pass
 
 @channel_session_user

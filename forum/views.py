@@ -8,7 +8,6 @@ from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.http import require_POST, require_GET
-from channels import Group
 from notification.notif_types import NOTIF_TYPES
 from notification.notification_manager import NOTIF_MEDIUM, sendNotification
 
@@ -70,6 +69,8 @@ def post_create_thread(request):
 
             thread = Thread(title=params['title'], author=params['author'])
 
+            thread.visibility = params['visibility']
+
             if params['visibility'] == 'private':
                 thread.recipient = params['recipient']
 
@@ -103,26 +104,26 @@ def sendWSNotificationForNewThread(thread):
         "medium": NOTIF_MEDIUM["WS"],
         "audience": [],
         "params": {
-            "thread": thread
+            "thread": str(thread.id)
         }
     }
 
-    if visibility == "public":
+    if thread.visibility == "public":
 
-        notifType["type"] = NOTIF_TYPES["NEW_PUBLIC_FORUM_THREAD"]
+        notif["type"] = NOTIF_TYPES["NEW_PUBLIC_FORUM_THREAD"]
 
         try:
-            for l in thread.author.lesson_set.all()
+            for l in thread.author.lesson_set.all():
                 notifType["audience"].append('notification-class-' + str(l.id))
-        except
+        except:
             pass
 
-    elif visibility == "class":
-        notifType["type"] = NOTIF_TYPES["NEW_CLASS_FORUM_THREAD"]
-        notifType["audience"] = [ 'notification-class-' + thread.lesson.id ]
-    elif visibility == "private":
-        notifType["type"] = NOTIF_TYPES["NEW_PRIVATE_FORUM_THREAD"]
-        notifType["audience"] = [ 'notification-user-' + thread.recipient.id ]
+    elif thread.visibility == "class":
+        notif["type"] = NOTIF_TYPES["NEW_CLASS_FORUM_THREAD"]
+        notif["audience"] = [ 'notification-class-' + str(thread.lesson.id) ]
+    elif thread.visibility == "private":
+        notif["type"] = NOTIF_TYPES["NEW_PRIVATE_FORUM_THREAD"]
+        notif["audience"] = [ 'notification-user-' + str(thread.recipient.id) ]
 
     sendNotification(notif)
 

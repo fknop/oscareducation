@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-import json
 from __future__ import unicode_literals
 
+import json
+
+from channels import Group
 from notification.notif_types import NOTIF_TYPES
 
 # for @param notification structure check in 'notification/notification_manager.py'

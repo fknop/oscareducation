@@ -61,7 +61,7 @@ INSTALLED_APPS = (
     'resources',
     'end_test_poll',
     'forum',
-    'notification'
+    'notification',
     'channels'
 
 ) + ADDITIONAL_APPS
