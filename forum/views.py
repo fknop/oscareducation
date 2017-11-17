@@ -8,6 +8,8 @@ from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.http import require_POST, require_GET
+from channels import Group
+from notification.notification_manager import MSG_TYPES, sendNotification
 
 # Create your views here.
 from forum.models import Thread, Message
@@ -88,6 +90,11 @@ def post_create_thread(request):
 
             original_message = Message(content=params['content'], thread=thread, author=params['author'])
             original_message.save()
+
+        sendNotification(to, {
+            "type": MSG_TYPES.NEW_FORUM_THREAD,
+            "id": thread.id
+        })
 
         return redirect('/forum/thread/' + str(thread.id))
 
