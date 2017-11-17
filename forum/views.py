@@ -53,11 +53,11 @@ def create_thread(request):
 
 def get_create_thread_page(request):
     return render(request, "forum/new_thread.haml", { 'errors' : [], "data": {
-            'title' : "",
-            'visibility': "private",
-            'visibdata' : "",
-            'skills' : "",
-            'content' : ""
+            'title' : request.GET.get('title', ''),
+            'visibility': request.GET.get('visibility', 'private'),
+            'visibdata' : request.GET.get('visibdata', ''),
+            'skills' : request.GET.getlist('skills', ''),
+            'content' : request.GET.get('content', '')
         } })
 
 def post_create_thread(request):

@@ -11,6 +11,14 @@ def message_partial(message, user, reply_to, level=0):
     }
 
 
+@register.inclusion_tag('forum/leave_comment.haml')
+def leave_comment_partial(title='', visibdata=''):
+    return {
+        "title": title,
+        "visibdata": visibdata
+    }
+
+
 @register.inclusion_tag('forum/reply_form.haml')
 def reply_form_partial():
     return {}
@@ -24,6 +32,7 @@ def reply_margin(level):
 @register.filter
 def can_edit(user, message):
     return message.author == user
+
 
 @register.filter
 def is_reply_to(reply_to, message):
