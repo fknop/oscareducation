@@ -167,7 +167,7 @@ def post_create_thread(request):
     if len(errors) == 0:
 
         with transaction.atomic():
-
+            print(params['section'])
             thread = Thread(title=params['title'], author=params['author'], section_id=params['section'])
 
             if params['visibility'] == 'private':
@@ -195,6 +195,7 @@ def post_create_thread(request):
 
 
 class ThreadForm(forms.Form):
+    section = forms.CharField()
     title = forms.CharField()
     visibdata = forms.CharField()
     skills = forms.CharField()

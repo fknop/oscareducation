@@ -75,6 +75,7 @@
 
             %label{:for => 'section'} UAA
             %select.form-control#section-select{:name => 'section'}
+                %option{:value => ""} Sélectionnez une UAA (optionel)
               - for section in data.sections
                 %option{:value => "#{section.id}"}
                   %span= section.name
