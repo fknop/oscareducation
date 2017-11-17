@@ -26,15 +26,15 @@
     $(document).ready( function(){
 
       var messages = $('.message-content');
-      var treshold = 1000;    
+      var threshold = 1000;    
 
       messages.each(function(){    
           var t = $(this).text();        
-          if(t.length < treshold) return;
+          if(t.length < threshold) return;
 
           $(this).html(
-              t.slice(0,treshold )+'<span>... </span><a href="#" class="more">More</a>'+
-              '<span style="display:none;">'+ t.slice(treshold ,t.length)+' <a href="#" class="less">Less</a></span>'
+              t.slice(0,threshold )+'<span>... </span><a href="#" class="more">More</a>'+
+              '<span style="display:none;">'+ t.slice(threshold ,t.length)+' <a href="#" class="less">Less</a></span>'
           );
 
       }) 
