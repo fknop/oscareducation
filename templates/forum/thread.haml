@@ -25,7 +25,7 @@
 
   .messages
     - for message in messages
-      {% message_partial message user reply_to 0 %}
+      {% message_partial message user reply_to edit 0 %}
 
   .reply-block
     %form{:action =>'' , :method => 'post'} {% csrf_token %}
