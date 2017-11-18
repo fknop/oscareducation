@@ -27,5 +27,4 @@ def can_edit(user, message):
 
 @register.filter
 def is_reply_to(reply_to, message):
-    print(reply_to, str(message.id))
     return str(message.id) == reply_to

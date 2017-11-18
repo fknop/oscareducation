@@ -86,13 +86,15 @@ def get_professors(request):
     for lesson in lessons:
         for prof in lesson.professors.all():
             if (professor is not None and professor.id != prof.id) or professor is None:
-                professors.append({
+                p = {
                     "id": prof.id,
                     "username": prof.user.username,
                     "first_name": prof.user.first_name,
                     "last_name": prof.user.last_name
-                })
+                }
+                professors.append(frozenset(p.items()))
 
+    professors = list([dict(prof) for prof in set(professors)])
     return JsonResponse({"data": professors})
 
 
@@ -135,7 +137,9 @@ def get_skills(request):
     for stage in stages:
         for skill in stage.skills.all():
             skills.add(skill)
-            sections.add(skill.section)
+
+            if skill.section is not None:
+                sections.add(skill.section)
 
     skills = list(skills)
     skills.sort(key=lambda x: x.name)
