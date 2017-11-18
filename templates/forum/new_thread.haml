@@ -68,17 +68,29 @@
               {% endif %}
             %select.form-control#skills-select{:name => 'skills', :multiple => 'true', :size => 6}
               - for skill in data.skills
-                %option{:value => "#{skill.id}"}
-                  %span= skill.code
-                  %span= skill.name
+                -if skill|is_skill_selected:data.selected_skills
+                  %option{:value => "#{skill.id}", :selected}
+                    %span= skill.code
+                    %span= skill.name
+                -else
+                  %option{:value => "#{skill.id}"}
+                    %span= skill.code
+                    %span= skill.name
 
 
             %label{:for => 'section'} UAA
             %select.form-control#section-select{:name => 'section'}
+              -if data.selected_section is None
+                %option{:value => "", :selected} Sélectionnez une UAA (optionel)
+              -if data.selected_section is not None
                 %option{:value => ""} Sélectionnez une UAA (optionel)
               - for section in data.sections
-                %option{:value => "#{section.id}"}
-                  %span= section.name
+                -if section|is_section_selected:data.selected_section
+                  %option{:value => "#{section.id}", :selected}
+                    %span= section.name
+                -else
+                  %option{:value => "#{section.id}"}
+                    %span= section.name
 
 
           %div

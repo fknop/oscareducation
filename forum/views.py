@@ -151,7 +151,6 @@ def get_skills(request):
 
 
 def get_create_thread_page(request):
-
     skills, sections = get_skills(request)
 
     return render(request, "forum/new_thread.haml", {'errors': [], "data": {
@@ -159,7 +158,9 @@ def get_create_thread_page(request):
         'visibility': "private",
         'visibdata': "",
         'skills': skills,
+        'selected_skills': [],  # Can prefill this
         'sections': sections,
+        'selected_section': None,  # Can prefill this
         'content': ""
     }})
 
@@ -194,9 +195,19 @@ def post_create_thread(request):
         return redirect('/forum/thread/' + str(thread.id))
 
     else:
+        skills, sections = get_skills(request)
+        params['skills'] = skills
+        params['sections'] = sections
+
+        if params['skills_fetched']:
+            params['selected_skills'] = params['fetched_skills']
+        else:
+            params['selected_skills'] = []
+
+        if params['section'] is not None:
+            params['selected_section'] = int(params['section'])
+
         return render(request, "forum/new_thread.haml", {"errors": errors, "data": params})
-
-
 
 
 class ThreadForm(forms.Form):
@@ -210,7 +221,6 @@ def deepValidateAndFetch(request, errors):
     params = {}
     form = ThreadForm(request.POST)
 
-
     form.is_valid()
 
     params['visibility'] = request.POST.get('visibility')
@@ -220,7 +230,6 @@ def deepValidateAndFetch(request, errors):
         params['section'] = form.cleaned_data['section']
     except:
         params['section'] = None
-
 
     try:
         params['skills'] = request.POST.getlist('skills')
