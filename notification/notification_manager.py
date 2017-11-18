@@ -31,7 +31,7 @@ NOTIF_MEDIUM = {
 # all fields are required.
 def sendNotification(notification):
 
-    #persistNotif(notification)
+    persistNotif(notification)
 
     if notification["medium"] == NOTIF_MEDIUM["WS"]:
         sendWSNotif(notification)

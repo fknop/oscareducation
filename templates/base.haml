@@ -60,7 +60,9 @@
                   %img{src: "{% static 'img/icons/ressource-white.png' %}"}
           %ul.nav.navbar-nav.navbar-right.hidden-xs.hidden-sm
             %li
-              %a.icon.logout{href: "{% url 'logout' %}"}
+              %a.glyphicon.glyphicon-bell#bellicon{href:"#", data-toggle:"popover", title:"Notifications", data-html:"true", data-content:"No Notifications", data-placement:"bottom"}
+            %li
+              %a.icon.logout#logoutButton{href: "{% url 'logout' %}"}
                 -#%img{src: "{% static 'img/icons/logout.png' %}"}
           #toCollapse.collapse.navbar-collapse
             %ul.nav.navbar-nav.hidden-md.hidden-lg

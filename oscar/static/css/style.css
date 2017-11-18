@@ -996,7 +996,36 @@ h7 {
     background: transparent;
 }
 
+#logoutButton {
+  margin-right: 100px;
+}
 
- 
+#bellicon {
+  font-size: 25px;
+}
 
+#bellicon:hover {
+  background-color: transparent;
+  color: #787878;
+}
 
+#bellicon:focus {
+  background-color: transparent;
+  color: #787878;
+}
+
+.popover {
+  width: 280px;
+}
+
+.popover.bottom .arrow::after {
+  border-bottom-color: #f58025;
+}
+
+.popover-content {
+  padding: 0px;
+}
+
+.list-group {
+  margin-bottom: 0px;
+}
