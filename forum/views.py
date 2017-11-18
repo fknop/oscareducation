@@ -200,7 +200,7 @@ def post_create_thread(request):
         params['sections'] = sections
 
         if params['skills_fetched']:
-            params['selected_skills'] = params['fetched_skills']
+            params['selected_skills'] = map(lambda x: x.id, params['fetched_skills'])
         else:
             params['selected_skills'] = []
 

@@ -38,5 +38,5 @@ def is_section_selected(section, selected):
 
 @register.filter
 def is_skill_selected(skill, selected):
-    is_selected = len(selected) > 0 and any(skill.id == s.id for s in selected)
+    is_selected = len(selected) > 0 and any(skill.id == id for id in selected)
     return is_selected
