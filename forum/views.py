@@ -285,7 +285,7 @@ def deepValidateAndFetch(request, errors):
             params['skills_fetched'] = True
         except:
             errors.append(
-                {"field": "skills", "msg": "Compétence(s) inconnue(s) ou mal formée(s) (format: id1 id2 ...)"})
+                {"field": "skills", "msg": "Compétence(s) inconnue(s) ou mal formée(s) (format: [id1, id2, ...])"})
 
     return params
 
