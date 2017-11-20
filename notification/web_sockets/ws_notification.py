@@ -12,7 +12,7 @@ def sendWSNotif(notification):
     WSMsg = {
         "text": json.dumps({
             "type": notification["type"],
-            "params": json.dumps(notification["params"]),
+            "params": notification["params"],
         })
     }
 
