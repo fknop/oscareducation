@@ -1089,3 +1089,8 @@ h7 {
   font-size: 11px;
   margin-right: 3px;
 }
+
+.notif-item-emph {
+  color: #f58025;
+  font-weight: bold;
+}

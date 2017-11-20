@@ -86,25 +86,26 @@ def post_create_thread(request):
                 thread.skills = params['fetched_skills']
                 thread.save()
 
-            sendWSNotificationForNewThread(thread)
+            sendNotification(getWSNotificationForNewThread(thread))
 
             original_message = Message(content=params['content'], thread=thread, author=params['author'])
             original_message.save()
 
-            #sendWSNotificationForNewMessage(original_message)
+            sendNotification(getNotificationForNewMessage(original_message))
 
         return redirect('/forum/thread/' + str(thread.id))
 
     else:
         return render(request, "forum/new_thread.haml", { "errors" : errors, "data": params })
 
-def sendWSNotificationForNewThread(thread):
+def getWSNotificationForNewThread(thread):
 
     notif = {
         "medium": NOTIF_MEDIUM["WS"],
         "audience": [],
         "params": {
             "thread_id": str(thread.id),
+            "thread_title": thread.title,
             "author": {
                 "id": thread.author.id,
                 "first_name": thread.author.first_name,
@@ -121,7 +122,7 @@ def sendWSNotificationForNewThread(thread):
         try:
             for l in thread.author.lesson_set.all():
                 notifType["audience"].append('notification-class-' + str(l.id))
-                notif["params"]["classe"].append({
+                notif["params"]["classes"].append({
                     "id": l.id,
                     "name": l.name
                 })
@@ -139,12 +140,21 @@ def sendWSNotificationForNewThread(thread):
         notif["type"] = NOTIF_TYPES["NEW_PRIVATE_FORUM_THREAD"]
         notif["audience"] = [ 'notification-user-' + str(thread.recipient.id) ]
 
-    sendNotification(notif)
+    return notif
 
-def sendNotificationForNewMessage():
-    pass
-    #notif
-    #sendNotification(notif)
+def getNotificationForNewMessage(message):
+
+    notif = getWSNotificationForNewThread(message.thread)
+
+    notif["type"] = notif["type"].replace("thread", "message")
+    notif["params"]["author"] = {
+        "id": message.author.id,
+        "first_name": message.author.first_name,
+        "last_name": message.author.last_name
+    }
+    notif["params"]["msg_id"] = message.id
+
+    return notif
 
 class ThreadForm(forms.Form):
     title = forms.CharField()
@@ -252,6 +262,7 @@ def reply_thread(request, id):
 
     form = MessageReplyForm(request.POST)  # request.Post contains the data we want
     author = User.objects.get(pk=request.user.id)
+
     if form.is_valid():
         content = form.cleaned_data['content']
         message = Message.objects.create(content=content, thread=thread, author=author)
@@ -261,4 +272,7 @@ def reply_thread(request, id):
             message.parent_message = parent_message
 
         message.save()
+
+        sendNotification(getNotificationForNewMessage(message))
+
         return redirect(message)

@@ -38,16 +38,17 @@ $(document).ready(function(){
                   + " " + newNotif.created_date.hour + 'h'
                   + newNotif.created_date.minute
       let redirect_url, icon_src, title, content
-
+console.log(newNotif)
       switch(newNotif.type) {
-        
+
           case 'new_private_forum_thread':
 
             redirect_url = '/forum/thread/' + newNotif.params.thread_id
             icon_src = '/static/img/icons/forum.png'
             title = 'Forum: nouvelle discussion privée'
             content = newNotif.params.author.first_name + ' '
-              + newNotif.params.author.last_name + ' a créé une nouvelle discussion privée avec vous'
+              + newNotif.params.author.last_name + ' a créé une nouvelle discussion privée: '
+              +  '<span class="notif-item-emph">' + newNotif.params.thread_title + '</span>'
           break
 
           case 'new_public_forum_thread':
@@ -64,6 +65,19 @@ $(document).ready(function(){
                 newNotif.params.classes.filter(
                   c => c.id == newNotif.server_group.split('-').pop())[0])
           break
+
+          case 'new_private_forum_message':
+          case 'new_public_forum_message':
+          case 'new_class_forum_message':
+            redirect_url = '/forum/thread/'
+              + newNotif.params.thread_id + '/' + '#message-' + newNotif.params.msg_id
+            icon_src = '/static/img/icons/forum.png'
+            title = 'Forum: nouveau message'
+            content = newNotif.params.author.first_name + ' '
+              + newNotif.params.author.last_name
+              + ' a publié un nouveau message dans la discussion: '
+              + '<span class="notif-item-emph">' + newNotif.params.thread_title + '</span>'
+
       }
 
       element = $(notifItemTemplate
