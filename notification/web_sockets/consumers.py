@@ -16,15 +16,14 @@ def ws_add(message):
     addUserInItsClassGroups(message)
 
 def addUserInItsClassGroups(message):
-
     try:
-        for lesson in Student.objects.get(pk=message.user.id).lesson_set.all():
+        for lesson in Student.objects.get(user=message.user).lesson_set.all():
             Group("notification-class-%s" % lesson.id).add(message.reply_channel)
     except:
         pass
 
     try:
-        for lesson in Professor.objects.get(pk=message.user.id).lesson_set.all():
+        for lesson in Professor.objects.get(user=message.user).lesson_set.all():
             Group("notification-class-%s" % lesson.id).add(message.reply_channel)
     except:
         pass

@@ -69,8 +69,6 @@ def post_create_thread(request):
 
             thread = Thread(title=params['title'], author=params['author'])
 
-            thread.visibility = params['visibility']
-
             if params['visibility'] == 'private':
                 thread.recipient = params['recipient']
 
@@ -114,7 +112,7 @@ def getWSNotificationForNewThread(thread):
         }
     }
 
-    if thread.visibility == "public":
+    if thread.professor != None:
 
         notif["type"] = NOTIF_TYPES["NEW_PUBLIC_FORUM_THREAD"]
         notif["param"]["classes"] = []
@@ -129,14 +127,14 @@ def getWSNotificationForNewThread(thread):
         except:
             pass
 
-    elif thread.visibility == "class":
+    elif thread.lesson != None:
         notif["type"] = NOTIF_TYPES["NEW_CLASS_FORUM_THREAD"]
         notif["audience"] = [ 'notification-class-' + str(thread.lesson.id) ]
         notif["params"]["class"] = {
             "id": thread.lesson.id,
             "name": thread.lesson.name
         }
-    elif thread.visibility == "private":
+    elif thread.recipient != None:
         notif["type"] = NOTIF_TYPES["NEW_PRIVATE_FORUM_THREAD"]
         notif["audience"] = [ 'notification-user-' + str(thread.recipient.id) ]
 
@@ -153,6 +151,9 @@ def getNotificationForNewMessage(message):
         "last_name": message.author.last_name
     }
     notif["params"]["msg_id"] = message.id
+
+    if (message.thread.recipient != None) and (message.author != message.thread.author):
+        notif["audience"] = ['notification-user-' + str(message.thread.author.id)]
 
     return notif
 

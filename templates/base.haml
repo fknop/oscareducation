@@ -6,6 +6,20 @@
   Oscar
 
 -block bootstrap3_extra_head
+
+  -# Bind logged user to javascript global context
+  %script{'type':'text/javascript'}
+    var currentUser = {
+      id: {{user.id}},
+      username: "{{user.username}}",
+      first_name: "{{user.first_name}}",
+      last_name: "{{user.last_name}}",
+      -if user.professor
+        user_type: "{{"professor"}}"
+      -else
+        user_type: "{{"student"}}"
+    }
+
   %script{type: "text/javascript", async: None, src: "//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML"}
 
   -compress js
@@ -32,7 +46,6 @@
   %link{rel: "icon", type: "image/png", href: "{% static 'img/favicon.png' %}"}
 
   -block head
-
 
 -block bootstrap3_content
   %div{class: "{% if user.professor %}fond{% endif %}"}

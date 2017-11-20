@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import json
-import pickle
 
 from notification.models import Notification
 from .notif_types import NOTIF_TYPES
@@ -38,16 +37,16 @@ def sendNotification(notification):
 
 def persistNotif(notification):
 
-    serializedAudience = ""
+    serializedAudience = " "
 
     for a in notification["audience"]:
-        serializedAudience += a + " "
+        serializedAudience += (a + " ")
 
     notif = Notification(
         audience=serializedAudience,
         medium=notification["medium"],
         notif_type=notification["type"],
-        params = pickle.dumps(notification["params"])
+        params = json.dumps(notification["params"])
     )
 
     notif.save()
