@@ -27,5 +27,16 @@ def can_edit(user, message):
 
 @register.filter
 def is_reply_to(reply_to, message):
-    print(reply_to, str(message.id))
     return str(message.id) == reply_to
+
+@register.filter
+def is_section_selected(section, selected):
+    if selected is not None:
+        return section.id == selected
+    else:
+        return False
+
+@register.filter
+def is_skill_selected(skill, selected):
+    is_selected = len(selected) > 0 and any(skill.id == id for id in selected)
+    return is_selected
