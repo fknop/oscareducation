@@ -1051,10 +1051,15 @@ h7 {
 
 .notif-item {
   margin-top: 3px;
-  border-bottom: 1px solid #d9dee6;
   padding-bottom: 7px;
   color: black;
   text-decoration: none;
+}
+
+
+.notif-item .media {
+
+  border-bottom: 1px solid #d9dee6;
 }
 
 .notif-item:hover {

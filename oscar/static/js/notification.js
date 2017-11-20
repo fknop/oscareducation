@@ -33,25 +33,53 @@ $(document).ready(function(){
     socket.onmessage = function(e) {
 
       const newNotif = JSON.parse(e.data)
-      let element;
+      const date = newNotif.created_date.day + '/'
+                  + newNotif.created_date.month + '/' + newNotif.created_date.year
+                  + " " + newNotif.created_date.hour + 'h'
+                  + newNotif.created_date.minute
+      let redirect_url, icon_src, title, content
 
       switch(newNotif.type) {
+        
           case 'new_private_forum_thread':
-            element = notifItemTemplate
-                        .replace('%redirect_url%', '/forum/thread/' + newNotif.params.thread)
-                        .replace('%icon_src%', '/static/img/icons/forum.png')
-                        .replace('%title%', 'Forum: nouvelle discussion privée')
-                        .replace('%content%', 'Ernest Biroute a créé une nouvelle discussion privée avec vous')
-                        .replace('%date%', '24/03/1997')
+
+            redirect_url = '/forum/thread/' + newNotif.params.thread_id
+            icon_src = '/static/img/icons/forum.png'
+            title = 'Forum: nouvelle discussion privée'
+            content = newNotif.params.author.first_name + ' '
+              + newNotif.params.author.last_name + ' a créé une nouvelle discussion privée avec vous'
+          break
+
+          case 'new_public_forum_thread':
+          case 'new_class_forum_thread':
+
+            redirect_url = '/forum/thread/' + newNotif.params.thread_id
+            icon_src = '/static/img/icons/forum.png'
+            title = 'Forum: nouvelle discussion de classe'
+            content = newNotif.params.author.first_name + ' '
+              + newNotif.params.author.last_name
+              + ' a créé une nouvelle discussion dans votre classe: '
+              + (newNotif.type == 'new_class_forum_thread' ?
+                newNotif.params.class.name :
+                newNotif.params.classes.filter(
+                  c => c.id == newNotif.server_group.split('-').pop())[0])
           break
       }
+
+      element = $(notifItemTemplate
+                  .replace('%redirect_url%', redirect_url)
+                  .replace('%icon_src%', icon_src)
+                  .replace('%title%', title)
+                  .replace('%content%', content)
+                  .replace('%date%', date))
+
       notificationsContainer.prepend(element)
 
       $('#bellicon').css('color', '#f58025')
       $('#bellicon').attr('data-content', $('<div></div>').append(notificationsContainer).html())
 
-      if ($("#bellicon").next('div.popover:visible').length){ // if popover is open
-        $('.popover-content ul.list-group').html($('<div></div>').append(notificationsContainer).html())
+      if ($('div.popover.fade.bottom.in').length){ // if popover is open
+        $('.popover-content').html($('<div></div>').append(notificationsContainer).html())
       }
     }
 });

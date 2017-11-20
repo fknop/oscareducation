@@ -104,23 +104,37 @@ def sendWSNotificationForNewThread(thread):
         "medium": NOTIF_MEDIUM["WS"],
         "audience": [],
         "params": {
-            "thread": str(thread.id)
+            "thread_id": str(thread.id),
+            "author": {
+                "id": thread.author.id,
+                "first_name": thread.author.first_name,
+                "last_name": thread.author.last_name
+            }
         }
     }
 
     if thread.visibility == "public":
 
         notif["type"] = NOTIF_TYPES["NEW_PUBLIC_FORUM_THREAD"]
+        notif["param"]["classes"] = []
 
         try:
             for l in thread.author.lesson_set.all():
                 notifType["audience"].append('notification-class-' + str(l.id))
+                notif["params"]["classe"].append({
+                    "id": l.id,
+                    "name": l.name
+                })
         except:
             pass
 
     elif thread.visibility == "class":
         notif["type"] = NOTIF_TYPES["NEW_CLASS_FORUM_THREAD"]
         notif["audience"] = [ 'notification-class-' + str(thread.lesson.id) ]
+        notif["params"]["class"] = {
+            "id": thread.lesson.id,
+            "name": thread.lesson.name
+        }
     elif thread.visibility == "private":
         notif["type"] = NOTIF_TYPES["NEW_PRIVATE_FORUM_THREAD"]
         notif["audience"] = [ 'notification-user-' + str(thread.recipient.id) ]

@@ -31,7 +31,7 @@ NOTIF_MEDIUM = {
 # all fields are required.
 def sendNotification(notification):
 
-    persistNotif(notification)
+    persistedNotif = persistNotif(notification)
 
     if notification["medium"] == NOTIF_MEDIUM["WS"]:
         sendWSNotif(notification)
@@ -43,9 +43,22 @@ def persistNotif(notification):
     for a in notification["audience"]:
         serializedAudience += a + " "
 
-    Notification(
+    notif = Notification(
         audience=serializedAudience,
         medium=notification["medium"],
         notif_type=notification["type"],
         params = pickle.dumps(notification["params"])
-    ).save()
+    )
+
+    notif.save()
+
+    notification['created_date'] = {
+        "day": notif.created_date.day,
+        "month": notif.created_date.month,
+        "year": notif.created_date.year,
+        "hour": notif.created_date.hour,
+        "minute": notif.created_date.minute,
+        "second": notif.created_date.second
+    }
+
+    return notif
