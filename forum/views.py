@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from datetime import datetime
+
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, HttpResponse
+from django.utils.timezone import utc
 from django.views.decorators.http import require_POST, require_GET
 from django.http import JsonResponse
 
 # Create your views here.
-from forum.models import Thread, Message
+from numpy.ma import copy
+
+from forum.models import Thread, Message, LastThreadVisit
 
 from promotions.models import Lesson
 from skills.models import Skill
@@ -303,17 +308,31 @@ def thread(request, id):
         return reply_thread(request, id)
 
 
+def get_last_visit(user, thread):
+    if LastThreadVisit.objects.filter(user=user, thread=thread).exists():
+        last_visit = LastThreadVisit.objects.get(user=user, thread=thread)
+        date = last_visit.last_visit
+        last_visit.last_visit = utc.localize(datetime.now())
+    else:
+        last_visit = LastThreadVisit(user=user, thread=thread, last_visit=utc.localize(datetime.now()))
+        date = utc.localize(datetime.min)
+    last_visit.save()
+    return date
+
+
 def get_thread(request, id):
     thread = get_object_or_404(Thread, pk=id)
     messages = thread.messages()
 
+    last_visit = get_last_visit(request.user, thread)
     reply_to = request.GET.get('reply_to')
 
     return render(request, "forum/thread.haml", {
         "user": request.user,
         "thread": thread,
         "messages": messages,
-        "reply_to": reply_to
+        "reply_to": reply_to,
+        "last_visit": last_visit
     })
 
 
@@ -325,7 +344,8 @@ def reply_thread(request, id):
     author = User.objects.get(pk=request.user.id)
     if form.is_valid():
         content = form.cleaned_data['content']
-        message = Message.objects.create(content=content, thread=thread, author=author)
+        message = Message.objects.create(content=content, thread=thread, author=author,
+                                         created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
 
         if message_id is not None:
             parent_message = get_object_or_404(Message, pk=message_id)

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase, Client, RequestFactory
@@ -286,6 +287,46 @@ class TestGetThread(TestCase):
         self.assertEquals(context["thread"], thread)
         self.assertEquals(context["messages"][0], thread.messages()[0])
         self.assertEquals(response.status_code, 200)
+
+    def test_get_thread_page_date(self):
+        user = User()
+        user.save()
+
+        thread = Thread(title="test", author=user)
+        thread.save()
+
+        first_message = Message(author=user, thread=thread, content="hello")
+        first_message.save()
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
+        context = response.context
+        date = context["last_visit"]
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
+        context = response.context
+        second_date = context["last_visit"]
+        self.assertNotEquals(date, second_date)
+
+    def test_get_thread_page_date_two(self):
+        user = User()
+        user.save()
+
+        thread = Thread(title="test", author=user)
+        thread.save()
+
+        first_message = Message(author=user, thread=thread, content="hello")
+        first_message.save()
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
+        context = response.context
+        date = context["last_visit"]
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
+        context = response.context
+        second_date = context["last_visit"]
+        self.assertNotEquals(date, second_date)
 
 
 class TestPostReply(TestCase):

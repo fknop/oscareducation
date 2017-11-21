@@ -2,6 +2,9 @@
   .panel-heading
     %span.message-author= message.author.username
     %span.flex-spacer
+    -if message.created_date > last_visit
+        %span.message-date= "Nouveau message"
+    %span.flex-spacer
     %span.message-date
       %a.message-anchor{href: "#message-{{message.id}}"} {{message.created_date}}
   .panel-body{:class => "message-content"}= message.content
@@ -19,4 +22,4 @@
   <br/>
 
 - for reply in message.replies
-  {% message_partial reply user reply_to level %}
+  {% message_partial reply user reply_to last_visit level %}
