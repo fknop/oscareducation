@@ -133,7 +133,7 @@ def get_resources_list(request):
     filtered_skills = [skill for skill in skills if skill.id in selected_skills] \
         if selected_skills \
         else skills
-    filtered_sections = [section for section in sections if section.id in [selected_section]] \
+    filtered_sections = [section for section in sections if section.id in selected_section] \
         if selected_section is not None \
         else sections
 

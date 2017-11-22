@@ -7,10 +7,11 @@ from django.test import TestCase, Client, RequestFactory
 
 import json
 
-from forum.views import forum_dashboard, thread as get_thread, get_skills
+from forum.views import forum_dashboard, thread as get_thread, get_skills, get_resources_list
 from promotions.models import Lesson, Stage
 from users.models import Professor, Student
 from skills.models import Skill, Section
+from resources.models import Resource
 from .models import Thread, Message
 from .views import deepValidateAndFetch
 from dashboard import private_threads, public_class_threads, public_teacher_threads_student, get_thread_set
@@ -20,6 +21,7 @@ from views import create_thread, reply_thread
 class FakeRequest:
     def __init__(self, user):
         self.user = user
+
 
 class ThreadModelTest(TestCase):
     def test_invalid_thread_both_recipient_professor(self):
@@ -582,7 +584,6 @@ class TestMisc(TestCase):
                                     professor=self.teacher)
         self.fourth_thread.save()
 
-
         self.c1 = Client()
         self.c1.login(username=self.user.username, password='12345')
 
@@ -670,3 +671,88 @@ class TestMisc(TestCase):
             })
 
 
+class TestResources(TestCase):
+    def setUp(self):
+        self.user = User(username="Brandon")
+        self.user.set_password('12345')
+        self.user.save()
+        self.teacher_user = User(username="Vince")
+        self.teacher_user.set_password('12345')
+        self.teacher_user.save()
+
+        self.student = Student(user=self.user)
+        self.student.save()
+        self.teacher = Professor(user=self.teacher_user)
+        self.teacher.save()
+
+        res1_content = {"title": "Res1"}
+        self.res1 = Resource(added_by=self.teacher_user, content=res1_content)
+        self.res1.save()
+
+        self.section = Section(id=1, name="Section1")
+        self.section.save()
+        self.section.resource.add(self.res1)
+        self.section.save()
+
+        self.skill2 = Skill(id=2, name="Skill2", code="2")
+        self.skill2.save()
+
+        res2_content = {"title": "Res2"}
+        self.res2 = Resource(added_by=self.teacher_user, content=res2_content)
+        self.res2.save()
+
+        self.skill3 = Skill(id=3, name="Skill3", code="3")
+        self.skill3.save()
+        self.skill3.resource.add(self.res2)
+        self.skill3.save()
+
+        self.skill4 = Skill(id=4, name="Skill4", code="4")
+        self.skill4.section = self.section
+        self.skill4.save()
+
+        self.stage = Stage(id=1, name="Stage1", level=1)
+        self.stage.save()
+        self.stage.skills.add(self.skill3)
+        self.stage.skills.add(self.skill4)
+        self.stage.save()
+
+        self.lesson = Lesson(id=1, name="English", stage_id=1)
+        self.lesson.save()
+        self.lesson.students.add(self.student)
+        self.lesson.professors.add(self.teacher)
+        self.lesson.save()
+
+        self.s1 = Client()
+        self.s1.login(username=self.user.username, password='12345')
+
+        self.t1 = Client()
+        self.t1.login(username=self.teacher_user.username, password='12345')
+
+    def test_get_all_resources(self):
+        response = self.s1.get('/forum/write/resources/')
+        json_data = json.loads(response.content)
+        data = json_data["data"]
+
+        self.assertEquals(len(data), 2)
+
+        correct_ids = [self.res1.id, self.res2.id]
+        self.assertTrue(data[0]["id"] in correct_ids)
+        self.assertTrue(data[1]["id"] in correct_ids)
+
+    def test_get_section_resources(self):
+        response = self.s1.get('/forum/write/resources/?section={0}&skills[]={1}'.format(self.section.id, 0))
+        json_data = json.loads(response.content)
+        data = json_data["data"]
+
+        self.assertEquals(len(data), 1)
+
+        self.assertEquals(data[0]["title"], self.res1.content['title'])
+
+    def test_get_skills_resources(self):
+        response = self.s1.get('/forum/write/resources/?skills[]={0}&section={1}'.format(self.skill3.id, 0))
+        json_data = json.loads(response.content)
+        data = json_data["data"]
+
+        self.assertEquals(len(data), 1)
+
+        self.assertEquals(data[0]["title"], self.res2.content['title'])
