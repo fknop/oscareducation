@@ -194,7 +194,7 @@ def post_create_thread(request):
                 thread.skills = params['fetched_skills']
                 thread.save()
 
-            original_message = Message(content=params['content'], thread=thread, author=params['author'])
+            original_message = Message(content=params['content'], thread=thread, author=params['author'], created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
             original_message.save()
 
         return redirect('/forum/thread/' + str(thread.id))
