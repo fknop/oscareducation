@@ -26,6 +26,8 @@
           =sesamath.1.year
 
         %td{width: "100px"}
+          -if user.student
+            {% leave_comment_partial "Commentaire sur: "|add:sesamath.1.title '' sesamath.0  %}
           -if user.professor
             %form.remove-form{method: "POST", action: "{% url 'professor:remove_pedagogical_ressources' type base.id 'sesamath' sesamath.0 %}"}
               -csrf_token
@@ -164,8 +166,9 @@
                             fichier
                           %a{href: "{{ MEDIA_URL }}{{ item.file }}", target: "_blank"}
                             {{item.file}}
-                    -if user.professor
-
+                      -if user.student
+                        {% leave_comment_partial "Commentaire sur: "|add:resource.content.title resource.added_by_id resource.id  %}
+      -if user.professor
         %form.remove-form{method: "POST", action: "{% url 'professor:remove_pedagogical_ressources' type base.id 'resource' resource.id %}"}
           -csrf_token
           %button.btn.btn-danger.btn-xs.delete{type: "submit"}

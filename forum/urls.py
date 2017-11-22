@@ -12,7 +12,7 @@ urlpatterns = [
     url(r'^write/users/$', views.get_users, name='get_users'),
     url(r'^write/professors/$', views.get_professors, name='get_professors'),
     url(r'^write/lessons/$', views.get_lessons, name='get_lessons'),
-    url(r'^write/resources/skills$', views.get_resources_by_skills, name='get_resources_by_skills'),
+    url(r'^write/resources/$', views.get_resources, name='get_resources'),
     url(r'^thread/(?P<id>\d+)', views.thread, name='view_thread')
 ]
 

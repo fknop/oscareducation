@@ -14,8 +14,8 @@ from django.http import JsonResponse
 from forum.models import Thread, Message
 
 from promotions.models import Lesson
-from skills.models import Skill
-from resources.models import Resource
+from skills.models import Skill, Section
+from resources.models import Resource, KhanAcademy, Sesamath
 from users.models import Professor, Student
 
 from dashboard import get_thread_set
@@ -87,13 +87,15 @@ def get_professors(request):
     for lesson in lessons:
         for prof in lesson.professors.all():
             if (professor is not None and professor.id != prof.id) or professor is None:
-                professors.append({
+                p = {
                     "id": prof.id,
                     "username": prof.user.username,
                     "first_name": prof.user.first_name,
                     "last_name": prof.user.last_name
-                })
+                }
+                professors.append(frozenset(p.items()))
 
+    professors = list([dict(prof) for prof in set(professors)])
     return JsonResponse({"data": professors})
 
 
@@ -121,35 +123,56 @@ def get_lessons(request):
 
 @require_login
 @require_GET
-def get_resources_by_skills(request):
-    requested_skills = request.GET.getlist('skills[]')
-    skills = Skill.objects.filter(pk__in=requested_skills)
+def get_resources(request):
+    return JsonResponse({"data": get_resources_list(request)})
+
+
+def get_resources_list(request):
+    skills, sections = get_skills(request)
+    selected_skills, selected_section = get_selected_skills_section(request)
+    filtered_skills = [skill for skill in skills if skill.id in selected_skills] \
+        if selected_skills \
+        else skills
+    filtered_sections = [section for section in sections if section.id in [selected_section]] \
+        if selected_section is not None \
+        else sections
 
     resources = set()
-    for skill in skills:
-        for resource in skill.resource.all():
-            resources.add(resource)
+    for skill_section in filtered_skills+filtered_sections:
+        for resource in skill_section.resource.all():
+            if "from" in resource.content:
+                if resource.content["from"] == "skills_sesamathskill":
+                    special_resource = Sesamath.objects.get(pk=resource.content["referenced"])
+                elif resource.content["from"] == "skills_khanacademyvideoskill":
+                    special_resource = KhanAcademy.objects.get(pk=resource.content["referenced"])
+                resources.add(
+                    frozenset({
+                        "id": resource.id,
+                        "title": special_resource.title
+                    }.items())
+                )
+            else:
+                resources.add(
+                    frozenset({
+                        "id": resource.id,
+                        "title": resource.content["title"]
+                    }.items())
+                )
 
-    resources_list = []
-    for resource in resources:
-        resources_list.append(
-            {
-                "id": resource.id,
-                "content": resource.content
-            }
-        )
-    return JsonResponse({"data": resources_list})
+    return [dict(res) for res in set(resources)]
 
 
-def get_resource(request):
+def get_selected_resource(request):
+    selected_skills, selected_sections = get_selected_skills_section(request)
+    selected_visibdata = get_selected_visibdata(request)
+
     requested_resource = request.GET.get('resource', None)
     if requested_resource:
         resource = Resource.objects.get(pk=requested_resource)
-        return {
-            "id": resource.id,
-            "title": resource.content.get('title', '')
-        }
-    return None
+        linked_skills = resource.skill_resource.all()
+        linked_sections = resource.section_resource.all()
+        return resource.id, [skill.id for skill in linked_skills], [section.id for section in linked_sections], resource.added_by_id
+    return None, selected_skills, selected_sections, selected_visibdata
 
 
 def get_skills(request):
@@ -163,25 +186,56 @@ def get_skills(request):
     else:
         lessons = []
 
-    skills = []
+    skills = set()
+    sections = set()
     stages = [lesson.stage for lesson in lessons]
     for stage in stages:
         for skill in stage.skills.all():
-            skills.append(skill)
+            skills.add(skill)
 
-    skills = list(set(skills))
+            if skill.section is not None:
+                sections.add(skill.section)
+
+    skills = list(skills)
     skills.sort(key=lambda x: x.name)
-    return skills
+
+    sections = list(sections)
+    sections.sort(key=lambda x: x.name)
+
+    return skills, sections
+
+
+def get_selected_skills_section(request):
+    skills = request.GET.getlist('skills[]', [])
+    section = request.GET.get('section', None)
+    return [int(skill) for skill in skills if skill and skill.isdigit()], [int(section)] \
+        if section and section.isdigit() else None
+
+
+def get_selected_visibdata(request):
+    res = request.GET.get('visibdata', None)
+    if res:
+        res = int(res) if res.isdigit() else None
+    return res
 
 
 def get_create_thread_page(request):
+    skills, sections = get_skills(request)
+    # selected_skills, selected_section = get_selected_skills_section(request)
+    resources = get_resources_list(request)
+    selected_resource, selected_skills, selected_sections, selected_visibdata = get_selected_resource(request)
+
     return render(request, "forum/new_thread.haml", {'errors': [], "data": {
         'title': request.GET.get('title', ''),
         'visibility': request.GET.get('visibility', 'private'),
-        'visibdata': request.GET.get('visibdata', ''),
-        'skills': get_skills(request),
+        'visibdata': selected_visibdata,
+        'skills': skills,
+        'selected_skills': selected_skills,
+        'sections': sections,
+        'selected_sections': selected_sections,
         'content': "",
-        'resource': get_resource(request)
+        'resources': resources,
+        'selected_resource': selected_resource
     }})
 
 
@@ -192,8 +246,7 @@ def post_create_thread(request):
     if len(errors) == 0:
 
         with transaction.atomic():
-
-            thread = Thread(title=params['title'], author=params['author'])
+            thread = Thread(title=params['title'], author=params['author'], section_id=params['section'])
 
             if params['visibility'] == 'private':
                 thread.recipient = params['recipient']
@@ -216,13 +269,25 @@ def post_create_thread(request):
         return redirect('/forum/thread/' + str(thread.id))
 
     else:
+        skills, sections = get_skills(request)
+        params['skills'] = skills
+        params['sections'] = sections
+
+        if params['skills_fetched']:
+            params['selected_skills'] = map(lambda x: x.id, params['fetched_skills'])
+        else:
+            params['selected_skills'] = []
+
+        if params['section'] is not None:
+            params['selected_section'] = int(params['section'])
+
         return render(request, "forum/new_thread.haml", {"errors": errors, "data": params})
 
 
 class ThreadForm(forms.Form):
+    section = forms.CharField()
     title = forms.CharField()
     visibdata = forms.CharField()
-    skills = forms.CharField()
     content = forms.CharField()
 
 
@@ -236,9 +301,14 @@ def deepValidateAndFetch(request, errors):
     params['skills_fetched'] = False
 
     try:
-        params['skills'] = form.cleaned_data['skills']
+        params['section'] = form.cleaned_data['section']
     except:
-        params['skills'] = ""
+        params['section'] = None
+
+    try:
+        params['skills'] = request.POST.getlist('skills')
+    except:
+        params['skills'] = []
 
     try:
         params['title'] = form.cleaned_data['title']
@@ -283,13 +353,13 @@ def deepValidateAndFetch(request, errors):
             except:
                 errors.append({"field": "visibdata", "msg": "Professeur inconnu"})
 
-    if params['skills'] != "":
+    if len(params['skills']) > 0:
         try:
-            params['fetched_skills'] = Skill.objects.filter(pk__in=params['skills'].encode('utf8').split(" "))
+            params['fetched_skills'] = Skill.objects.filter(pk__in=params['skills'])
             params['skills_fetched'] = True
         except:
             errors.append(
-                {"field": "skills", "msg": "Compétence(s) inconnue(s) ou mal formée(s) (format: id1 id2 ...)"})
+                {"field": "skills", "msg": "Compétence(s) inconnue(s) ou mal formée(s) (format: [id1, id2, ...])"})
 
     return params
 

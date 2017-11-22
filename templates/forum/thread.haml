@@ -18,8 +18,10 @@
 -block content
   .page-header
     %h1= thread.title
-      - for skill in thread.skills.all
-        %small= skill.id
+    - if thread.section is not None
+      %h5= thread.section.name
+    - for skill in thread.skills.all
+      %h6.skill-title= skill.name
 
   .messages
     - for message in messages

@@ -37,5 +37,18 @@ def can_edit(user, message):
 
 @register.filter
 def is_reply_to(reply_to, message):
-    print(reply_to, str(message.id))
     return str(message.id) == reply_to
+
+
+@register.filter
+def is_selected_multiple(obj, selected):
+    is_selected = len(selected) > 0 and any(obj.id == id for id in selected)
+    return is_selected
+
+
+@register.filter
+def is_selected_single(obj_id, selected_id):
+    if selected_id is not None:
+        return obj_id == selected_id
+    else:
+        return False

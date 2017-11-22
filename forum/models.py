@@ -14,6 +14,7 @@ class Thread(models.Model):
     title = models.CharField(max_length=255)
     skills = models.ManyToManyField("skills.Skill", blank=True)
     resource = models.ForeignKey("resources.Resource", null=True, blank=True, related_name="thread_resource")
+    section = models.ForeignKey("skills.Section", blank=True, null=True)
 
     recipient = models.ForeignKey(User, null=True, related_name="thread_recipient")
     professor = models.ForeignKey("users.Professor", null=True)
