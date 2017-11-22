@@ -134,7 +134,7 @@ def get_resources_list(request):
         if selected_skills \
         else skills
     filtered_sections = [section for section in sections if section.id in selected_section] \
-        if selected_section is not None \
+        if selected_section \
         else sections
 
     resources = set()
@@ -166,13 +166,14 @@ def get_selected_resource(request):
     selected_skills, selected_sections = get_selected_skills_section(request)
     selected_visibdata = get_selected_visibdata(request)
 
-    requested_resource = request.GET.get('resource', None)
+    requested_resource = request.GET.get('resource', '')
     if requested_resource:
         resource = Resource.objects.get(pk=requested_resource)
         linked_skills = resource.skill_resource.all()
         linked_sections = resource.section_resource.all()
-        return resource.id, [skill.id for skill in linked_skills], [section.id for section in linked_sections], resource.added_by_id
-    return None, selected_skills, selected_sections, selected_visibdata
+        return resource.id, [skill.id for skill in linked_skills], [section.id for section in linked_sections], \
+               resource.added_by_id
+    return '', selected_skills, selected_sections, selected_visibdata
 
 
 def get_skills(request):
@@ -207,9 +208,9 @@ def get_skills(request):
 
 def get_selected_skills_section(request):
     skills = request.GET.getlist('skills[]', [])
-    section = request.GET.get('section', None)
+    section = request.GET.get('section', [])
     return [int(skill) for skill in skills if skill and skill.isdigit()], [int(section)] \
-        if section and section.isdigit() else None
+        if section and section.isdigit() else []
 
 
 def get_selected_visibdata(request):
@@ -219,15 +220,22 @@ def get_selected_visibdata(request):
     return res
 
 
+def get_selected_visibility(request):
+    visibility = request.GET.get('visibility', 'private')
+    if visibility not in ['private', 'class', 'public']:
+        visibility = 'private'
+    return visibility
+
+
 def get_create_thread_page(request):
     skills, sections = get_skills(request)
-    # selected_skills, selected_section = get_selected_skills_section(request)
     resources = get_resources_list(request)
     selected_resource, selected_skills, selected_sections, selected_visibdata = get_selected_resource(request)
+    visibility = get_selected_visibility(request)
 
     return render(request, "forum/new_thread.haml", {'errors': [], "data": {
         'title': request.GET.get('title', ''),
-        'visibility': request.GET.get('visibility', 'private'),
+        'visibility': visibility,
         'visibdata': selected_visibdata,
         'skills': skills,
         'selected_skills': selected_skills,
