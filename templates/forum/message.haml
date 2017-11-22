@@ -4,7 +4,7 @@
     %span.flex-spacer
     %span.message-date
       %a.message-anchor{href: "#message-{{message.id}}"} {{message.created_date}}
-  .panel-body{:class => "message-content"}= message.content
+  .panel-body= message.content
   .panel-footer
     %span.flex-spacer
     -if user|can_edit:message
@@ -21,27 +21,4 @@
 - for reply in message.replies
   {% message_partial reply user reply_to level %}
 
--block javascript
-  :javascript
-    $(document).ready( function(){
 
-      var threshold = 200; 
-      $('.message-content').html(function(){
-        var t = $(this).text();        
-          if(t.length < threshold) return;
-          return t.slice(0,threshold )+'<span>... </span><a href="#" class="more">Afficher la suite</a>'+
-              '<span style="display:none;">'+ t.slice(threshold ,t.length)+' <a href="#" class="less">Afficher moins</a></span>';
-      })   
-
-      $('a.more', '.message-content').click(function(event){
-          event.preventDefault();
-          $(this).hide().prev().hide();
-          $(this).next().show();        
-      })
-
-      $('a.less', '.message-content').click(function(event){
-          event.preventDefault();
-          $(this).parent().hide().prev().show().prev().show();    
-      })
-
-    })

@@ -3,10 +3,11 @@
 -load compress
 -load forum_tags
 
+
 -block head
   -compress css
     %link{rel: "stylesheet", href: "{% static 'css/thread.css' %}" }
-
+  
 -block breadcrumb
   %ol.breadcrumb
     %li
@@ -32,3 +33,12 @@
         .flex-spacer
         %button.btn.btn-primary.btn-lg#btn{:type => "submit"} Reply
 
+-block javascript
+  -compress js
+    %script{type: "text/javascript", src: "{% static 'js/readmore.js' %}"}
+  :javascript
+    $('.panel-body').readmore({
+      speed: 500,
+      moreLink: ' <a href="#" class="more">Afficher la suite</a>',
+      lessLink: ' <a href="#" class="less">Afficher moins</a>',
+    });
