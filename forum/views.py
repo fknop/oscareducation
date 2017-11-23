@@ -8,6 +8,7 @@ from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.http import require_POST, require_GET
+from django.core.mail import EmailMessage
 
 # Create your views here.
 from forum.models import Thread, Message
@@ -211,3 +212,59 @@ def reply_thread(request, id):
 
         message.save()
         return redirect(message)
+
+def write_mail(request):
+    if request.method == 'GET':
+        message_id = request.GET.get('message')
+        message = get_object_or_404(Message, pk=message_id)
+
+        return render(request, "forum/write_mail.haml", {'errors' : [], "data": {
+            'title' : "",
+            'body' : "\n\n--------------------\n" + message.content
+        }})
+
+    if request.method == "POST":
+        errors = []
+        params = checkFields(request, errors)
+
+        if len(errors) == 0:
+            title = params["title"]
+            body = "De " + request.user.email + " :\n" + params["body"]
+            mail_from = request.user.email
+            mail_to = "jh.oscaredu@gmail.com" # A remplacer par le mail d'Oscar
+
+            mail = EmailMessage(title,body,mail_from,[mail_to])
+            mail.send(fail_silently=False)
+
+            return redirect("/forum")
+        else:
+            return render(request, "forum/write_mail.haml", { "errors" : errors, "data": params })
+
+
+class MailForm(forms.Form):
+    title = forms.CharField()
+    body = forms.CharField()
+
+def checkFields(request, errors):
+
+    params = {}
+    form = MailForm(request.POST)
+
+    form.is_valid()
+
+    try:
+        params['title'] = form.cleaned_data['title']
+    except:
+        params['title'] = ""
+        errors.append({ "field": "title", "msg" :"L'objet du mail ne peut pas être vide"})
+
+    try:
+        params['body'] = form.cleaned_data['body']
+    except:
+        params['body'] = ""
+        errors.append({ "field": "body", "msg" :"Le corps du mail ne peut pas être vide"})
+
+    return params
+
+
+

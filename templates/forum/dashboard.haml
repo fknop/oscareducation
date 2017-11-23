@@ -20,6 +20,8 @@
 
 		.container-fluid.boxclasseTitle
 			%input{:type => "search", :id => "search", :placeholder => "Chercher..."}
+			&nbsp;
+			%input{:type => "checkbox", :id => "display_private"}>&nbsp;Messages privés
 			/
 				%select{:id => "search_lesson"}
 					-for lesson in lessons
@@ -73,6 +75,20 @@
 
 -block javascript
 	:javascript
+		// Display private threads
+		$(document).ready(function(){
+			$("#display_private").click(function(){
+				if($(this).is(':checked')){
+					$("tr").filter(function(){
+						$(this).toggle($(this).text().indexOf("Privé") > -1)
+					});
+					$(".forum").show();
+				}else{
+					$("tr").show();
+				}
+			});
+		});
+
 		$(document).ready(function(){
 			$("tr").click(function(){
 				if($(this).attr("id")){
@@ -94,7 +110,7 @@
 		$(document).ready(function(){
 			$("th").each(function(col){
 				$(this).hover(function(){
-					$("this").addClass('focus');
+					$(this).addClass('focus');
 				},
 				function(){
 					$(this).removeClass('focus');
@@ -117,10 +133,14 @@
 					arrData.sort(function(a, b){
 						var val1 = $(a).children('td').eq(col).text().toUpperCase();
 						var val2 = $(b).children('td').eq(col).text().toUpperCase();
-						if($.isNumeric(val1) && $.isNumeric(val2)){
-							return sortOrder == 1 ? val1-val2 : val2-val1;
+						if(col == 3){
+							return (new Date(val1) < new Date(val2)) ? -sortOrder : (new Date(val1) > new Date(val2)) ? sortOrder : 0;
 						}else{
-							return (val1 < val2) ? -sortOrder : (val1 > val2) ? sortOrder : 0;
+							if($.isNumeric(val1) && $.isNumeric(val2)){
+								return sortOrder == 1 ? val1-val2 : val2-val1;
+							}else{
+								return (val1 < val2) ? -sortOrder : (val1 > val2) ? sortOrder : 0;
+							}
 						}
 					});
 					$.each(arrData, function(index, row){
