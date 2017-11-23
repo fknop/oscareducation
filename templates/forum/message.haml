@@ -10,6 +10,9 @@
     -if user|can_edit:message
       %a
         %i.fa.fa-edit.edit-btn
+    -if user.professor
+      %a{:href => "/forum/mail?message={{message.id}}"}
+        %i.fa.fa-at.reply-btn#btn
     %input#message_id{:type => "hidden", :value => ""}
     %a{:href => "?reply_to={{message.id}}#message-{{message.id}}"}
       %i.fa.fa-reply.reply-btn#btn

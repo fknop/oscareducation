@@ -9,6 +9,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.core.mail import EmailMessage
+from oscar.settings import EMAIL_HOST_USER
 
 # Create your views here.
 from forum.models import Thread, Message
@@ -231,7 +232,7 @@ def write_mail(request):
             title = params["title"]
             body = "De " + request.user.email + " :\n" + params["body"]
             mail_from = request.user.email
-            mail_to = "jh.oscaredu@gmail.com" # A remplacer par le mail d'Oscar
+            mail_to = EMAIL_HOST_USER
 
             mail = EmailMessage(title,body,mail_from,[mail_to])
             mail.send(fail_silently=False)
