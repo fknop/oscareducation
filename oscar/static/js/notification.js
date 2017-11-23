@@ -70,7 +70,7 @@ $(document).ready(function(){
 
         if (!skip) {
             updateDOMForNotifications([ newNotif ])
-            receivedNotifications.push(n)
+            receivedNotifications.push(newNotif)
         }
     }
 
