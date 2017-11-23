@@ -9,7 +9,6 @@ from users.models import Student, Professor
 
 @channel_session_user_from_http
 def ws_add(message):
-    print message.user.id
     message.reply_channel.send({"accept": True})
     Group("notification-user-%s" % message.user.id).add(message.reply_channel)
     Group("notification-user-all").add(message.reply_channel)

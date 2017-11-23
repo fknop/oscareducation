@@ -10,3 +10,4 @@ class Notification(models.Model):
     medium = models.CharField(max_length=255)
     notif_type = models.CharField(max_length=255)
     params = models.TextField()
+    seen = models.TextField(default="")

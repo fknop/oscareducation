@@ -1025,6 +1025,8 @@ h7 {
 
 .navbar-inner .popover-content {
   padding: 0px;
+  max-height: 567px;
+  overflow: scroll;
 }
 
 .navbar-inner .list-group {

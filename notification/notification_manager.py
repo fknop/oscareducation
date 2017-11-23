@@ -46,7 +46,8 @@ def persistNotif(notification):
         audience=serializedAudience,
         medium=notification["medium"],
         notif_type=notification["type"],
-        params = json.dumps(notification["params"])
+        params = json.dumps(notification["params"]),
+        seen=""
     )
 
     notif.save()
@@ -59,5 +60,8 @@ def persistNotif(notification):
         "minute": notif.created_date.minute,
         "second": notif.created_date.second
     }
+
+    notification['notif_id'] = notif.id
+    notification['seen'] = notif.seen
 
     return notif

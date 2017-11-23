@@ -115,11 +115,11 @@ def getWSNotificationForNewThread(thread):
     if thread.professor != None:
 
         notif["type"] = NOTIF_TYPES["NEW_PUBLIC_FORUM_THREAD"]
-        notif["param"]["classes"] = []
+        notif["params"]["classes"] = []
 
         try:
-            for l in thread.author.lesson_set.all():
-                notifType["audience"].append('notification-class-' + str(l.id))
+            for l in thread.professor.lesson_set.all():
+                notif["audience"].append('notification-class-' + str(l.id))
                 notif["params"]["classes"].append({
                     "id": l.id,
                     "name": l.name

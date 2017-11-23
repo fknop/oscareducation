@@ -15,7 +15,9 @@ def sendWSNotif(notification):
                 "type": notification["type"],
                 "params": notification["params"],
                 "created_date": notification["created_date"],
-                "server_group": group
+                "server_group": group,
+                "notif_id": notification["notif_id"],
+                "seen": notification["seen"]
             })
         }
         Group(group).send(WSMsg)

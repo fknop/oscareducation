@@ -1,6 +1,8 @@
 
 $(document).ready(function(){
 
+    let receivedNotifications = []
+
     initPageAndSocket()
     socket.onmessage = onMessageSocketHandler
 
@@ -8,8 +10,12 @@ $(document).ready(function(){
 
         $('[data-toggle="popover"]').popover();
 
+        fetchNotifs()
+
         $('#bellicon').click(function() {
-          $('#bellicon').css('color', '#787878')
+
+            setUnreadNotifAsRead()
+            $('#bellicon').css('color', '#787878')
         })
 
         socket = new WebSocket("ws://" + window.location.host + "/notification/");
@@ -19,18 +25,60 @@ $(document).ready(function(){
         }
     }
 
+    function fetchNotifs() {
+
+        $.get("/notification/last/?medium=ws", function(data, status){
+
+            const filteredNotifs = data.notifs.filter(function(n) {
+                return (currentUser.id != n.params.author.id)
+            })
+
+            filteredNotifs.forEach(function(n) {
+                receivedNotifications.push(n)
+            })
+
+            updateDOMForNotifications(filteredNotifs)
+        });
+    }
+
+    function setUnreadNotifAsRead() {
+
+        const unreadNotifs = receivedNotifications.filter(function(notif) {
+
+            const read = (notif.seen.indexOf('' + currentUser.id) < 0)
+
+            notif.seen += ' ' + currentUser.id
+
+            return read
+
+        }).map(function(notif) { return '' + notif.notif_id })
+
+        if (unreadNotifs.length != 0) {
+
+            $.ajax({
+                type: 'POST',
+                url: '/notification/seen/',
+                data: JSON.stringify({ notif_ids: unreadNotifs })
+            });
+        }
+    }
+
     function onMessageSocketHandler(e) {
 
         const newNotif = JSON.parse(e.data)
-        let skip = currentUser.id == newNotif.params.author.id))
+        let skip = (currentUser.id == newNotif.params.author.id)
 
-        if (!skip)
-          updateDOM(newNotif)
+        if (!skip) {
+            updateDOMForNotifications([ newNotif ])
+            receivedNotifications.push(n)
+        }
     }
 
-    function updateDOM(newNotif) {
+    /* updateDOM() state variable */
+    const notificationsContainer = $('<ul class="media-list"></ul>')
 
-        const notificationsContainer = $('<ul class="media-list"></ul>')
+    function updateDOMForNotifications(notifs) {
+
         const notifItemTemplate =
           `
           <a href="%redirect_url%" class="notif-item">
@@ -46,22 +94,31 @@ $(document).ready(function(){
             </li>
           </a>
           `
-          const templateParams = getTemplateParams(newNotif)
+          var thereIsAnUnseenNotif = false;
 
-          element = $(notifItemTemplate
-                      .replace('%redirect_url%', templateParams.redirect_url)
-                      .replace('%icon_src%', templateParams.icon_src)
-                      .replace('%title%', templateParams.title)
-                      .replace('%content%', templateParams.content)
-                      .replace('%date%', templateParams.date))
+          for (var i=notifs.length-1; i>=0; i--) {
 
-          notificationsContainer.prepend(element)
+              const templateParams = getTemplateParams(notifs[i])
 
-          $('#bellicon').css('color', '#f58025')
+              element = $(notifItemTemplate
+                          .replace('%redirect_url%', templateParams.redirect_url)
+                          .replace('%icon_src%', templateParams.icon_src)
+                          .replace('%title%', templateParams.title)
+                          .replace('%content%', templateParams.content)
+                          .replace('%date%', templateParams.date))
+
+              notificationsContainer.prepend(element)
+
+              thereIsAnUnreadNotif = (notifs[i].seen.indexOf('' + currentUser.id) < 0)
+          }
+
+          if (thereIsAnUnreadNotif)
+              $('#bellicon').css('color', '#f58025')
+
           $('#bellicon').attr('data-content', $('<div></div>').append(notificationsContainer).html())
 
-          if ($('div.popover.fade.bottom.in').length){ // if popover is open
-            $('.popover-content').html($('<div></div>').append(notificationsContainer).html())
+          if ($('div.popover.fade.bottom.in').length) { // if popover is open
+              $('.popover-content').html($('<div></div>').append(notificationsContainer).html())
           }
     }
 
@@ -82,13 +139,13 @@ $(document).ready(function(){
 
             case 'new_public_forum_thread':
             case 'new_class_forum_thread':
-                addNewClassTempParams(templateParams, newNotif)
+                addNewClassForumThreadTempParams(templateParams, newNotif)
             break
 
             case 'new_private_forum_message':
             case 'new_public_forum_message':
             case 'new_class_forum_message':
-                addNewMsgTempParams(templateParams, newNotif)
+                addNewForumMsgTempParams(templateParams, newNotif)
             break
           }
 
@@ -105,7 +162,7 @@ $(document).ready(function(){
           +  '<span class="notif-item-emph">' + newNotif.params.thread_title + '</span>'
     }
 
-    function addNewClassTempParams(templateParams, newNotif) {
+    function addNewClassForumThreadTempParams(templateParams, newNotif) {
 
         templateParams.redirect_url = '/forum/thread/' + newNotif.params.thread_id
         templateParams.icon_src = '/static/img/icons/forum.png'
@@ -114,12 +171,12 @@ $(document).ready(function(){
           + newNotif.params.author.last_name
           + ' a créé une nouvelle discussion dans votre classe: '
           + (newNotif.type == 'new_class_forum_thread' ?
-            newNotif.params.class.name :
-            newNotif.params.classes.filter(
-              c => c.id == newNotif.server_group.split('-').pop())[0])
+            ('<span class="notif-item-emph">' + newNotif.params.class.name + '</span>')
+            : ('<span class="notif-item-emph">' + newNotif.params.classes.filter(
+              c => c.id == newNotif.server_group.split('-').pop())[0].name +  '</span>'))
     }
 
-    function addNewMsgTempParams(templateParams, newNotif) {
+    function addNewForumMsgTempParams(templateParams, newNotif) {
 
         templateParams.redirect_url = '/forum/thread/'
           + newNotif.params.thread_id + '/' + '#message-' + newNotif.params.msg_id
@@ -130,5 +187,5 @@ $(document).ready(function(){
           + ' a publié un nouveau message dans la discussion: '
           + '<span class="notif-item-emph">' + newNotif.params.thread_title + '</span>'
     }
-    
+
 });
