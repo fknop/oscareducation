@@ -347,11 +347,11 @@ def reply_thread(request, id):
             thread.save()
 
         return redirect(message)
-
+    else:
+        return HttpResponse(status=400, content="Malformed request")
 
 
 def can_update(thread, message, user):
-
     if message.thread_id != thread.id:
         return False
 
@@ -372,20 +372,20 @@ def can_update(thread, message, user):
         else:
             return condition
 
+
 @require_POST
 @require_login
 def edit_message(request, id, message_id):
-
     thread = get_object_or_404(Thread, pk=id)
-
-    content = request.POST.get("content")
-    if content is None or len(content) == 0:
-        return redirect(thread)
 
     message = get_object_or_404(Message, pk=message_id)
 
     if not can_update(thread, message, request.user):
-        return redirect(thread)
+        return HttpResponse(status=403, content="Permissions missing to edit this message")
+
+    content = request.POST.get("content")
+    if content is None or len(content) == 0:
+        return HttpResponse(status=400, content="Missing content")
 
     message.content = content
     message.save()
@@ -400,8 +400,7 @@ def delete_message(request, id, message_id):
     message = get_object_or_404(Message, pk=message_id)
 
     if not can_update(thread, message, request.user):
-        return redirect(thread)
-
+        return HttpResponse(status=403, content="Permissions missing to delete this message")
 
     message.delete()
 

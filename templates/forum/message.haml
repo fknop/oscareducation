@@ -8,10 +8,11 @@
     -if message|is_editing:edit
       %form{:action => "/forum/thread/{{message.thread.id}}/edit/{{message.id}}", :method => "POST"}
         {% csrf_token %}
-        %textarea.edit{:name => "content"}= message.content
+        %textarea.edit#edit-textarea{:name => "content"}= message.content
         %div.flex
           .flex-spacer
-          %button.btn.btn-primary{:type => "submit"} Confirm
+          %a.btn.btn-secondary.btn-lg{:href => "./{{message.thread.id}}#message-{{message.id}}", :type => 'button'} Back
+          %button.btn.btn-primary#edit-confirm{:type => "submit", :disabled} Confirm
     -else
       %div= message.content
 
@@ -23,14 +24,14 @@
           %i.fa.fa-trash
 
     -if user|can_update:message
-      %a.edit-btn{:href => "?edit={{message.id}}"}
+      %a.edit-btn{:href => "?edit={{message.id}}#message-{{message.id}}"}
         %i.fa.fa-edit
 
     %a{:href => "?reply_to={{message.id}}#message-{{message.id}}"}
       %i.fa.fa-reply.reply-btn#btn
 
 -if reply_to|is_reply_to:message
-  {% reply_form_partial %}
+  {% reply_form_partial message %}
   <br/>
 
 - for reply in message.replies

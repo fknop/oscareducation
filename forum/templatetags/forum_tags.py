@@ -13,8 +13,10 @@ def message_partial(message, user, reply_to, edit, level=0):
 
 
 @register.inclusion_tag('forum/reply_form.haml')
-def reply_form_partial():
-    return {}
+def reply_form_partial(message):
+    return {
+        "message": message
+    }
 
 
 @register.filter
