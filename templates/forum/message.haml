@@ -23,7 +23,7 @@
     -else
       %div= message.content
   .panel-footer
-    -for attach in {{message.attachments}}
+    -for attach in message.attachments
       %a.btn.btn-default.btn-sm{:href => "{{attach.file.url}}" }
         %i.attach-btn
         {{attach.file.name}}
