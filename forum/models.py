@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.datetime_safe import datetime
 
 
 class Thread(models.Model):
@@ -58,8 +59,8 @@ class MessageAttachment(models.Model):
 
 
 class Message(models.Model):
-    created_date = models.DateTimeField(auto_now_add=True)
-    modified_date = models.DateTimeField(auto_now=True)
+    created_date = models.DateTimeField()
+    modified_date = models.DateTimeField()
 
     author = models.ForeignKey(User, related_name="message_author")
     thread = models.ForeignKey("Thread")
@@ -85,3 +86,15 @@ class Message(models.Model):
             replies.append(message)
 
         return replies
+
+
+class LastThreadVisit(models.Model):
+    last_visit = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User)
+    thread = models.ForeignKey('Thread')
+
+    class Meta:
+        unique_together = ("user", "thread")
+
+    def update(self):
+        self.last_visit = datetime.now()

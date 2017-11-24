@@ -2,8 +2,9 @@ from django.template.loader_tags import register
 from ..views import can_update as views_can_update
 
 @register.inclusion_tag('forum/message.haml')
-def message_partial(message, user, reply_to, edit, level=0):
+def message_partial(message, user, reply_to, last_visit, edit, level=0):
     return {
+        "last_visit": last_visit,
         "message": message,
         "reply_to": reply_to,
         "level": level + 1,

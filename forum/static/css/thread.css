@@ -3,6 +3,10 @@
     flex-direction: row;
 }
 
+.message .panel-heading.new{
+    background-color: red;
+}
+
 textarea.edit {
     width: 100%;
     height: 100%;

@@ -1,10 +1,17 @@
 .panel.panel-default.message{:style => "margin-left: {{level|reply_margin}}px", :id => "message-{{message.id}}"}
-  .panel-heading
-    %span.message-author= message.author.username
-    %span.flex-spacer
-    %span.message-date
-      %a.message-anchor{href: "#message-{{message.id}}"} {{message.modified_date}}
-  .panel-body{:class => "message-content"}
+    -if message.created_date > last_visit
+        .panel-heading.new
+            %span.message-author= message.author.username
+            %span.flex-spacer
+            %span.message-date
+              %a.message-anchor{href: "#message-{{message.id}}"} {{message.modified_date}}
+    -else
+        .panel-heading
+            %span.message-author= message.author.username
+            %span.flex-spacer
+            %span.message-date
+              %a.message-anchor{href: "#message-{{message.id}}"} {{message.modified_date}}
+    .panel-body{:class => "message-content"}
     -if message|is_editing:edit
       %form{:action => "/forum/thread/{{message.thread.id}}/edit/{{message.id}}", :method => "POST"}
         {% csrf_token %}
@@ -15,24 +22,27 @@
           %button.btn.btn-primary#edit-confirm{:type => "submit", :disabled} Confirm
     -else
       %div= message.content
-  .panel-footer
-    %span.flex-spacer
-    -if user|can_update:message
-      %form{:action => "/forum/thread/{{message.thread.id}}/delete/{{message.id}}", :method => "POST"} {% csrf_token %}
-        %button.delete-btn{:type => "submit"}
-          %i.fa.fa-trash
+    .panel-footer
+      %span.flex-spacer
+      -if user|can_update:message
+        %form{:action => "/forum/thread/{{message.thread.id}}/delete/{{message.id}}", :method => "POST"} {% csrf_token %}
+          %button.delete-btn{:type => "submit"}
+            %i.fa.fa-trash
 
-    -if user|can_update:message
-      %a.edit-btn{:href => "?edit={{message.id}}#message-{{message.id}}"}
-        %i.fa.fa-edit
+      -if user|can_update:message
+        %a.edit-btn{:href => "?edit={{message.id}}#message-{{message.id}}"}
+          %i.fa.fa-edit
 
-    %a{:href => "?reply_to={{message.id}}#message-{{message.id}}"}
-      %i.fa.fa-reply.reply-btn#btn
+      %a{:href => "?reply_to={{message.id}}#message-{{message.id}}"}
+        %i.fa.fa-reply.reply-btn#btn
+
 
 -if reply_to|is_reply_to:message
   {% reply_form_partial message %}
   <br/>
 
 - for reply in message.replies
-  {% message_partial reply user reply_to edit level %}
+  {% message_partial reply user reply_to last_visit edit level %}
+
+
 

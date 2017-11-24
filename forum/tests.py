@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase, Client, RequestFactory
 
 import json
 
+
+from django.utils.timezone import utc
 from forum.views import forum_dashboard, thread as get_thread, get_skills, get_resources_list
+
 from promotions.models import Lesson, Stage
 from users.models import Professor, Student
 from skills.models import Skill, Section
@@ -111,10 +116,10 @@ class ThreadModelTest(TestCase):
         thread = Thread(title="test", author=user)
         thread.save()
 
-        first_message = Message(author=user, thread=thread, content="hello")
+        first_message = Message(author=user, thread=thread, content="hello", created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()) )
         first_message.save()
 
-        second_message = Message(author=user, thread=thread, content="hello as well")
+        second_message = Message(author=user, thread=thread, content="hello as well", created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
         second_message.save()
 
         messages = thread.messages()
@@ -129,10 +134,10 @@ class ThreadModelTest(TestCase):
         thread = Thread(title="test", author=user)
         thread.save()
 
-        first_message = Message(author=user, thread=thread, content="hello")
+        first_message = Message(author=user, thread=thread, content="hello", created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
         first_message.save()
 
-        second_message = Message(author=user, thread=thread, content="hello as well", parent_message=first_message)
+        second_message = Message(author=user, thread=thread, content="hello as well", parent_message=first_message, created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
         second_message.save()
 
         messages = thread.messages()
@@ -280,7 +285,7 @@ class TestGetThread(TestCase):
         thread = Thread(title="test", author=user)
         thread.save()
 
-        first_message = Message(author=user, thread=thread, content="hello")
+        first_message = Message(author=user, thread=thread, content="hello", created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
         first_message.save()
 
         response = self.c.get('/forum/thread/' + str(thread.id))
@@ -288,6 +293,46 @@ class TestGetThread(TestCase):
         self.assertEquals(context["thread"], thread)
         self.assertEquals(context["messages"][0], thread.messages()[0])
         self.assertEquals(response.status_code, 200)
+
+    def test_get_thread_page_date(self):
+        user = User()
+        user.save()
+
+        thread = Thread(title="test", author=user)
+        thread.save()
+
+        first_message = Message(author=user, thread=thread, content="hello", created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
+        first_message.save()
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
+        context = response.context
+        date = context["last_visit"]
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
+        context = response.context
+        second_date = context["last_visit"]
+        self.assertNotEquals(date, second_date)
+
+    def test_get_thread_page_date_two(self):
+        user = User()
+        user.save()
+
+        thread = Thread(title="test", author=user)
+        thread.save()
+
+        first_message = Message(author=user, thread=thread, content="hello", created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
+        first_message.save()
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
+        context = response.context
+        date = context["last_visit"]
+
+        response = self.c.get('/forum/thread/' + str(thread.id))
+        context = response.context
+        second_date = context["last_visit"]
+        self.assertNotEquals(date, second_date)
 
 
 class TestEditMessage(TestCase):
@@ -315,7 +360,7 @@ class TestEditMessage(TestCase):
         self.thread_lesson.save()
         self.thread_id = self.thread_lesson.id
         self.message = Message.objects.create(author=self.first_user, content="Content of message",
-                                              thread=self.thread_lesson)
+                                              thread=self.thread_lesson, created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
         self.message.save()
         self.c = Client()
         self.c.login(username='Alice', password='12345')
@@ -386,7 +431,7 @@ class TestDeleteMessage(TestCase):
         self.thread_lesson.save()
         self.thread_id = self.thread_lesson.id
         self.message = Message.objects.create(author=self.first_user, content="Content of message",
-                                              thread=self.thread_lesson)
+                                              thread=self.thread_lesson, created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
         self.message.save()
         self.c = Client()
         self.c.login(username='Alice', password='12345')
@@ -436,7 +481,7 @@ class TestPostReply(TestCase):
         self.thread_lesson.save()
         self.thread_id = self.thread_lesson.id
         self.message = Message.objects.create(author=self.first_user, content="Content of message",
-                                              thread=self.thread_lesson)
+                                              thread=self.thread_lesson, created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
         self.message.save()
         self.c = Client()
         self.c.login(username='Alice', password='12345')

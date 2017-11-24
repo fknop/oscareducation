@@ -26,7 +26,7 @@
 
   .messages
     - for message in messages
-      {% message_partial message user reply_to edit 0 %}
+      {% message_partial message user reply_to last_visit edit 0 %}
 
   -if reply_to is None
     .reply-block
