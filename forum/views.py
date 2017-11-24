@@ -16,7 +16,7 @@ from django.http import JsonResponse
 # Create your views here.
 from numpy.ma import copy
 
-from forum.models import Thread, Message, LastThreadVisit
+from forum.models import Thread, Message, LastThreadVisit, MessageAttachment
 
 from promotions.models import Lesson
 from skills.models import Skill
@@ -26,6 +26,8 @@ from dashboard import get_thread_set
 
 
 class MessageReplyForm(forms.ModelForm):
+    file = forms.FileField(required=False, label='file')
+
     class Meta:
         model = Message
         fields = ('content',)
@@ -320,9 +322,30 @@ def get_last_visit(user, thread):
     return date
 
 
+def get_file(request):
+    # Check if user as access to this file
+
+    threads = get_thread_set(request.user)
+    message = get_object_or_404(Message, pk=request.message.id)
+    if message.thread not in threads:
+        return HttpResponse(status=403)
+
+    attachment = get_object_or_404(MessageAttachment, pk=request.message)
+
+    filename = attachment.file.name.split('/')[-1]
+    response = HttpResponse(attachment.file, content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+    return render();
+
+
 def get_thread(request, id):
     thread = get_object_or_404(Thread, pk=id)
     messages = thread.messages()
+
+    attachments = ()
+    # for m in messages:
+        # attachments += m.attachments()
 
     last_visit = get_last_visit(request.user, thread)
     reply_to = request.GET.get('reply_to')
@@ -332,7 +355,8 @@ def get_thread(request, id):
         "thread": thread,
         "messages": messages,
         "reply_to": reply_to,
-        "last_visit": last_visit
+        "last_visit": last_visit,
+        "attachments": attachments
     })
 
 
