@@ -7,6 +7,9 @@
   .panel-body{:class => "message-content"}= message.content
   .panel-footer
     %span.flex-spacer
+    - for attach in message.attachements
+      %a{:href => "{{attach.file.url}}" }= attach.file.name
+        %i.attach-btn#btn
     -if user|can_edit:message
       %a
         %i.fa.fa-edit.edit-btn

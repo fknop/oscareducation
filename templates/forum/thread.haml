@@ -34,3 +34,13 @@
         .flex-spacer
         %button.btn.btn-primary.btn-lg#btn{:type => "submit"} Reply
 
+-block javascript
+  -compress js
+    %script{type: "text/javascript", src: "{% static 'js/file-icon.js' %}"}
+
+  :javascript
+  $(document).ready(function(){
+    console.debug($('.attach-btn').parent().attr('href'))
+    $('.attach-btn').addClass( fileicon($(this).parent().attr('href')));
+  }); 
+
