@@ -14,12 +14,14 @@ def message_partial(message, user, reply_to, last_visit, edit, level=0):
 
 
 @register.inclusion_tag('forum/leave_comment.haml')
-def leave_comment_partial(title='', visibdata='', resource='', visibility=''):
+def leave_comment_partial(title='', visibdata='', resource='', visibility='', skill='', section=''):
     return {
         "title": title,
         "visibdata": visibdata,
         "resource": resource,
-        "visibility": visibility
+        "visibility": visibility,
+        "skill": skill,
+        "section": section
     }
 
 

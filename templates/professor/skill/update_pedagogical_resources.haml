@@ -17,6 +17,11 @@
       =base
     %hr
     %h5= base
+      -if user.student
+        -if type == "skill"
+          {% leave_comment_partial base '' '' '' base.id %}
+        -else
+          {% leave_comment_partial base '' '' '' '' base.id %}
     -if type == "skill"
       -if user.professor
         %a.btn.btn-xs.btn-primary{href:"{% url 'professor:update_pedagogical_ressources' 'section' base.section_id %}"}

@@ -149,7 +149,7 @@
           callback(users);
         }
         else {
-          $.getJSON('/forum/write/users', function (result) {
+          $.getJSON('/forum/write/users/', function (result) {
             users = result.data
             callback(users)
           })
@@ -163,7 +163,7 @@
           callback(professors);
         }
         else {
-          $.getJSON('/forum/write/professors', function (result) {
+          $.getJSON('/forum/write/professors/', function (result) {
             professors = result.data
             callback(professors)
           })
@@ -176,7 +176,7 @@
           callback(lessons);
         }
         else {
-          $.getJSON('/forum/write/lessons', function (result) {
+          $.getJSON('/forum/write/lessons/', function (result) {
             lessons = result.data
             callback(lessons)
           })
