@@ -3,10 +3,11 @@
 -load compress
 -load forum_tags
 
+
 -block head
   -compress css
     %link{rel: "stylesheet", href: "{% static 'css/thread.css' %}" }
-
+  
 -block breadcrumb
   %ol.breadcrumb
     %li
@@ -36,8 +37,17 @@
           %button.btn.btn-primary.btn-lg#reply-btn{:type => "submit", :disabled} Reply
 
 -block javascript
+  -compress js
+    %script{type: "text/javascript", src: "{% static 'js/readmore.js' %}"}
   :javascript
     $(document).ready(function() {
+    
+      $('.panel-body').readmore({
+        speed: 500,
+        moreLink: ' <a href="#" class="more">Afficher la suite</a>',
+        lessLink: ' <a href="#" class="less">Afficher moins</a>',
+      });
+    
       $textarea = $('#content')
       $editTextarea = $('#edit-textarea')
       $reply = $('#reply-btn')
@@ -63,3 +73,4 @@
       });
 
     })
+

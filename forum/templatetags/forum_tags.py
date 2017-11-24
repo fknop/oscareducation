@@ -13,6 +13,16 @@ def message_partial(message, user, reply_to, last_visit, edit, level=0):
     }
 
 
+@register.inclusion_tag('forum/leave_comment.haml')
+def leave_comment_partial(title='', visibdata='', resource='', visibility=''):
+    return {
+        "title": title,
+        "visibdata": visibdata,
+        "resource": resource,
+        "visibility": visibility
+    }
+
+
 @register.inclusion_tag('forum/reply_form.haml')
 def reply_form_partial(message):
     return {
@@ -33,18 +43,21 @@ def is_editing(message, edit):
 def can_update(user, message):
     return views_can_update(message.thread, message, user)
 
+
 @register.filter
 def is_reply_to(reply_to, message):
     return str(message.id) == reply_to
 
-@register.filter
-def is_section_selected(section, selected):
-    if selected is not None:
-        return section.id == selected
-    else:
-        return False
 
 @register.filter
-def is_skill_selected(skill, selected):
-    is_selected = len(selected) > 0 and any(skill.id == id for id in selected)
+def is_selected_multiple(obj, selected):
+    is_selected = len(selected) > 0 and any(obj.id == id for id in selected)
     return is_selected
+
+
+@register.filter
+def is_selected_single(obj_id, selected_id):
+    if selected_id is not None:
+        return obj_id == selected_id
+    else:
+        return False

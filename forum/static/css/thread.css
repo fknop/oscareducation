@@ -47,7 +47,15 @@ textarea.edit {
     color: white;
 }
 
+
+.more, .less {
+    margin-left: 15px;
+    margin-top: 5px;
+}
+
 .skill-title {
     font-size: 12px;
 }
+
+
 

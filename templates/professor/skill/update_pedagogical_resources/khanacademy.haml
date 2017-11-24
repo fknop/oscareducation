@@ -23,7 +23,8 @@ Videos
         %p
           %a{href: "https://fr.khanacademy.org/v/{{ video.1.slug }}", target: "_blank"}
             =video.1.title|default:"Vidéo KhanAcademy"
-
+        -if user.student
+          {% leave_comment_partial "Commentaire sur: "|add:video.1.title 0 base.0 %}
         -if user.professor and add
           %form.remove-form{method: "POST", action: "{% url 'professor:remove_pedagogical_ressources' type base.id 'khanacademy' video.0 %}"}
             -csrf_token

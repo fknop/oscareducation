@@ -34,7 +34,7 @@ class Skill(models.Model):
     #similar_to = models.ManyToManyField('Skill', related_name="similar_to+")
     """The Skills that are similar, but with different references"""
 
-    resource = models.ManyToManyField('resources.Resource', related_name="skill_resource+")
+    resource = models.ManyToManyField('resources.Resource', related_name="skill_resource")
     """The Resources linked to this Skill. A Resource can be linked to several Skills"""
 
     image = models.CharField(max_length=255, null=True, blank=True)
@@ -110,7 +110,7 @@ class Section(models.Model):
     name = models.CharField(max_length=255)
     """The Section name"""
     #editable=False,
-    resource = models.ManyToManyField('resources.Resource',  related_name="section_resource+")
+    resource = models.ManyToManyField('resources.Resource',  related_name="section_resource")
     """The resources linked to this Section. A resource can be linked to several Sections"""
 
     def __unicode__(self):

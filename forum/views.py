@@ -19,7 +19,8 @@ from numpy.ma import copy
 from forum.models import Thread, Message, LastThreadVisit
 
 from promotions.models import Lesson
-from skills.models import Skill
+from skills.models import Skill, Section
+from resources.models import Resource, KhanAcademy, Sesamath
 from users.models import Professor, Student
 
 from dashboard import get_thread_set
@@ -125,6 +126,61 @@ def get_lessons(request):
     return JsonResponse({"data": lesson_list})
 
 
+@require_login
+@require_GET
+def get_resources(request):
+    return JsonResponse({"data": get_resources_list(request)})
+
+
+def get_resources_list(request):
+    skills, sections = get_skills(request)
+    selected_skills, selected_section = get_selected_skills_section(request)
+    filtered_skills = [skill for skill in skills if skill.id in selected_skills] \
+        if selected_skills \
+        else skills
+    filtered_sections = [section for section in sections if section.id in selected_section] \
+        if selected_section \
+        else sections
+
+    resources = set()
+    for skill_section in filtered_skills+filtered_sections:
+        for resource in skill_section.resource.all():
+            if "from" in resource.content:
+                if resource.content["from"] == "skills_sesamathskill":
+                    special_resource = Sesamath.objects.get(pk=resource.content["referenced"])
+                elif resource.content["from"] == "skills_khanacademyvideoskill":
+                    special_resource = KhanAcademy.objects.get(pk=resource.content["referenced"])
+                resources.add(
+                    frozenset({
+                        "id": resource.id,
+                        "title": special_resource.title
+                    }.items())
+                )
+            else:
+                resources.add(
+                    frozenset({
+                        "id": resource.id,
+                        "title": resource.content["title"]
+                    }.items())
+                )
+
+    return [dict(res) for res in set(resources)]
+
+
+def get_selected_resource(request):
+    selected_skills, selected_sections = get_selected_skills_section(request)
+    selected_visibdata = get_selected_visibdata(request)
+
+    requested_resource = request.GET.get('resource', '')
+    if requested_resource:
+        resource = Resource.objects.get(pk=requested_resource)
+        linked_skills = resource.skill_resource.all()
+        linked_sections = resource.section_resource.all()
+        return resource.id, [skill.id for skill in linked_skills], [section.id for section in linked_sections], \
+               resource.added_by_id
+    return '', selected_skills, selected_sections, selected_visibdata
+
+
 def get_skills(request):
     user = request.user
     if Student.objects.filter(user=user).exists():
@@ -155,18 +211,44 @@ def get_skills(request):
     return skills, sections
 
 
+def get_selected_skills_section(request):
+    skills = request.GET.getlist('skills[]', [])
+    section = request.GET.get('section', [])
+    return [int(skill) for skill in skills if skill and skill.isdigit()], [int(section)] \
+        if section and section.isdigit() else []
+
+
+def get_selected_visibdata(request):
+    res = request.GET.get('visibdata', None)
+    if res:
+        res = int(res) if res.isdigit() else None
+    return res
+
+
+def get_selected_visibility(request):
+    visibility = request.GET.get('visibility', 'private')
+    if visibility not in ['private', 'class', 'public']:
+        visibility = 'private'
+    return visibility
+
+
 def get_create_thread_page(request):
     skills, sections = get_skills(request)
+    resources = get_resources_list(request)
+    selected_resource, selected_skills, selected_sections, selected_visibdata = get_selected_resource(request)
+    visibility = get_selected_visibility(request)
 
     return render(request, "forum/new_thread.haml", {'errors': [], "data": {
-        'title': "",
-        'visibility': "private",
-        'visibdata': "",
+        'title': request.GET.get('title', ''),
+        'visibility': visibility,
+        'visibdata': selected_visibdata,
         'skills': skills,
-        'selected_skills': [],  # Can prefill this
+        'selected_skills': selected_skills,
         'sections': sections,
-        'selected_section': None,  # Can prefill this
-        'content': ""
+        'selected_sections': selected_sections,
+        'content': "",
+        'resources': resources,
+        'selected_resource': selected_resource
     }})
 
 
