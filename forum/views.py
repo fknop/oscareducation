@@ -465,7 +465,7 @@ def reply_thread(request, id):
 
 
         with transaction.atomic():
-            message = Message.objects.create(content=content, thread=thread, author=author)
+            message = Message.objects.create(content=content, thread=thread, author=author, created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
 
             if message_id is not None:
                 parent_message = get_object_or_404(Message, pk=message_id)

@@ -360,7 +360,7 @@ class TestEditMessage(TestCase):
         self.thread_lesson.save()
         self.thread_id = self.thread_lesson.id
         self.message = Message.objects.create(author=self.first_user, content="Content of message",
-                                              thread=self.thread_lesson)
+                                              thread=self.thread_lesson, created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
         self.message.save()
         self.c = Client()
         self.c.login(username='Alice', password='12345')
@@ -431,7 +431,7 @@ class TestDeleteMessage(TestCase):
         self.thread_lesson.save()
         self.thread_id = self.thread_lesson.id
         self.message = Message.objects.create(author=self.first_user, content="Content of message",
-                                              thread=self.thread_lesson)
+                                              thread=self.thread_lesson, created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
         self.message.save()
         self.c = Client()
         self.c.login(username='Alice', password='12345')
