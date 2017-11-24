@@ -782,7 +782,7 @@ class TestMisc(TestCase):
         self.assertEqual(sections[0], self.skill3.section)
 
     def test_get_professors_user(self):
-        response = self.c1.get('/forum/write/professors')
+        response = self.c1.get('/forum/write/professors/')
         json_data = json.loads(response.content)
         data = json_data["data"]
 
@@ -796,7 +796,7 @@ class TestMisc(TestCase):
         })
 
     def test_get_professors_second_user(self):
-        response = self.c2.get('/forum/write/professors')
+        response = self.c2.get('/forum/write/professors/')
         json_data = json.loads(response.content)
         data = json_data["data"]
         professor = data[0]
@@ -809,7 +809,7 @@ class TestMisc(TestCase):
         })
 
     def test_get_lessons_user(self):
-        response = self.c1.get('/forum/write/lessons')
+        response = self.c1.get('/forum/write/lessons/')
         json_data = json.loads(response.content)
         data = json_data["data"]
         self.assertEquals(len(data), 1)
@@ -819,7 +819,7 @@ class TestMisc(TestCase):
         self.assertEqual(lesson["name"], self.lesson.name)
 
     def test_get_lessons_second_user(self):
-        response = self.c2.get('/forum/write/lessons')
+        response = self.c2.get('/forum/write/lessons/')
         json_data = json.loads(response.content)
         data = json_data["data"]
 
@@ -834,7 +834,7 @@ class TestMisc(TestCase):
         self.assertEqual(lesson2["name"], self.second_lesson.name)
 
     def test_get_users(self):
-        response = self.c1.get('/forum/write/users')
+        response = self.c1.get('/forum/write/users/')
         json_data = json.loads(response.content)
         data = json_data["data"]
         users = User.objects.all()
