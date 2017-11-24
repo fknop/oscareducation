@@ -72,6 +72,8 @@
                   %p=item.file
                   %a.btn.btn-primary.btn-lg{href: "{{ MEDIA_URL }}{{ item.file }}", target: "_blank"}
                     %span.glyphicon.glyphicon-save-file Télécharger
+                -if user.student
+                  {% leave_comment_partial "Commentaire sur: "|add:resource.content.title resource.added_by_id resource.id  %}
             %hr
         -if user.professor and add
           %form.remove-form{method: "POST", action: "{% url 'professor:remove_pedagogical_ressources' type base.id 'resource' resource.id %}"}

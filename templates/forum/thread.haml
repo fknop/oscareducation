@@ -3,10 +3,11 @@
 -load compress
 -load forum_tags
 
+
 -block head
   -compress css
     %link{rel: "stylesheet", href: "{% static 'css/thread.css' %}" }
-
+  
 -block breadcrumb
   %ol.breadcrumb
     %li
@@ -25,12 +26,51 @@
 
   .messages
     - for message in messages
-      {% message_partial message user reply_to last_visit 0 %}
+      {% message_partial message user reply_to last_visit edit 0 %}
 
-  .reply-block
-    %form{:action =>'' , :method => 'post'} {% csrf_token %}
-      %textarea.form-control#content{:name => 'content'}
-      .flex
-        .flex-spacer
-        %button.btn.btn-primary.btn-lg#btn{:type => "submit"} Reply
+  -if reply_to is None
+    .reply-block
+      %form{:action =>'' , :method => 'post'} {% csrf_token %}
+        %textarea.form-control#content{:name => 'content'}
+        .flex
+          .flex-spacer
+          %button.btn.btn-primary.btn-lg#reply-btn{:type => "submit", :disabled} Reply
+
+-block javascript
+  -compress js
+    %script{type: "text/javascript", src: "{% static 'js/readmore.js' %}"}
+  :javascript
+    $(document).ready(function() {
+    
+      $('.panel-body').readmore({
+        speed: 500,
+        moreLink: ' <a href="#" class="more">Afficher la suite</a>',
+        lessLink: ' <a href="#" class="less">Afficher moins</a>',
+      });
+    
+      $textarea = $('#content')
+      $editTextarea = $('#edit-textarea')
+      $reply = $('#reply-btn')
+      $editConfirm = $('#edit-confirm')
+
+      editInitialValue = $editTextarea.text()
+
+
+      function disableButton($btn, disabled) {
+        $btn.prop('disabled', disabled)
+      }
+
+
+      disableButton($reply, $textarea.text().length == 0)
+      disableButton($editConfirm, true)
+
+      $editTextarea.bind('input propertychange', function() {
+        disableButton($editConfirm, !this.value || this.value.length == 0 || this.value == editInitialValue)
+      });
+
+      $textarea.bind('input propertychange', function() {
+        disableButton($reply, !this.value || this.value.length == 0)
+      });
+
+    })
 

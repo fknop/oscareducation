@@ -21,9 +21,6 @@
     .panel-body
 
       %form{:action => '/forum/write/', :method => 'post'} {% csrf_token %}
-
-        %script{'type':'text/javascript'} var visibility = "{{data.visibility}}"
-
         %div
           %label{:for => 'title'} Titre
           - for err in errors
@@ -37,7 +34,7 @@
           #radiobtns
             %span.radio
               %label
-                  %input#pvt-vis{'type':'radio', 'name':'visibility', 'value':'private', 'checked': true} Privé
+                  %input#pvt-vis{'type':'radio', 'name':'visibility', 'value':'private', 'checked': true } Privé
             %span.radio
                 %label
                     %input#class-vis{:type => 'radio', :value => 'class', :name => 'visibility'} Classe
@@ -55,7 +52,7 @@
               {% endif %}
 
             %select#select-visibility.form-control{:name => 'visibdata'}
-                %option{:value => "#{user.id}"}= user.username
+                %option{:value => "#{user.id}", :selected}= user.username
 
 
           %div
@@ -68,7 +65,7 @@
               {% endif %}
             %select.form-control#skills-select{:name => 'skills', :multiple => 'true', :size => 6}
               - for skill in data.skills
-                -if skill|is_skill_selected:data.selected_skills
+                -if skill|is_selected_multiple:data.selected_skills
                   %option{:value => "#{skill.id}", :selected}
                     %span= skill.code
                     %span= skill.name
@@ -77,21 +74,30 @@
                     %span= skill.code
                     %span= skill.name
 
-
             %label{:for => 'section'} UAA
             %select.form-control#section-select{:name => 'section'}
-              -if data.selected_section is None
-                %option{:value => "", :selected} Sélectionnez une UAA (optionel)
-              -if data.selected_section is not None
-                %option{:value => ""} Sélectionnez une UAA (optionel)
+              %option{:value => ""} Sélectionnez une UAA (optionel)
               - for section in data.sections
-                -if section|is_section_selected:data.selected_section
+                -if section|is_selected_multiple:data.selected_sections
                   %option{:value => "#{section.id}", :selected}
                     %span= section.name
                 -else
                   %option{:value => "#{section.id}"}
                     %span= section.name
-
+          %div
+            %label{:for => 'resource'} Ressource
+            %select.form-control#resources-select{:name => 'resources', :size => 1}
+                -if data.selected_resource is None
+                  %option{:value => "", :selected} Sélectionnez une resource (optionel)
+                -if data.selected_resource is not None
+                  %option{:value => ""} Sélectionnez une resource (optionel)
+                - for resource in data.resources
+                  -if resource.id|is_selected_single:data.selected_resource
+                    %option{:value => "#{resource.id}", :selected}
+                      %span= resource.title
+                  -else
+                    %option{:value => "#{resource.id}"}
+                      %span= resource.title
 
           %div
             %label{:for => 'content'} Message
@@ -112,24 +118,30 @@
 -block javascript
   :javascript
     $(document).ready( function() {
+      var visibility = "{{data.visibility}}";
+      var selectedVisibdata = "{{data.visibdata|escapejs}}";
 
-      var $visibilitySelect = $('#select-visibility')
+      var $visibilitySelect = $('#select-visibility');
 
       var lessons = []
       var professors = []
       var users = []
+      var resources = []
 
       switch(visibility)
       {
         case 'private':
           $('#pvt-vis').attr('checked', true)
-        break;
+          break;
         case 'class':
           $('#class-vis').attr('checked', true)
-        break;
+          break;
         case 'public':
           $('#public-vis').attr('checked', true)
-        break;
+          break;
+        default:
+          $('#pvt-vis').attr('checked', true)
+          break;
       }
 
       function fetchUsers (callback) {
@@ -171,12 +183,30 @@
         }
       }
 
+      function fetchResources (skills, section, callback) {
+        var params = {"skills[]": skills, "section": section};
+        console.log(params);
+        $.getJSON('/forum/write/resources/', params, function (result) {
+          resources = result.data;
+          callback(resources);
+        })
+      }
+
       function getDisplayName(value) {
         if (value.first_name && value.first_name.length > 0 && value.last_name && value.last_name.length > 0) {
           return value.first_name + ' ' + value.last_name
         }
 
         return value.username
+      }
+
+      function scrollToFirstSkill() {
+        var $skillsSelect = $("#skills-select")
+        var $skillsSelected = $("#skills-select :selected");
+        if ($skillsSelected.length) {
+          var $firstSelected = $($skillsSelected.get(0));
+          $skillsSelect.scrollTop($skillsSelect.scrollTop() + ($firstSelected.offset().top - $skillsSelect.offset().top));
+        }
       }
 
       var changeLab = function () {
@@ -187,7 +217,11 @@
           fetchProfessors(function (result) {
             for (var i = 0; i < result.length; ++i) {
               var value = result[i]
-              $visibilitySelect.append($("<option />").val(value.id).text(getDisplayName(value)))
+
+              $visibilitySelect.append($("<option />")
+                .val(value.id)
+                .attr("selected", visibility === 'public' && value.id == selectedVisibdata)
+                .text(getDisplayName(value)))
             }
           })
         } else if ($("#pvt-vis").is(":checked")) {
@@ -196,7 +230,11 @@
           fetchUsers(function (result) {
             for (var i = 0; i < result.length; ++i) {
               var value = result[i]
-              $visibilitySelect.append($("<option />").val(value.id).text(getDisplayName(value)))
+
+              $visibilitySelect.append($("<option />")
+                .val(value.id)
+                .attr("selected", visibility === 'private' && value.id == selectedVisibdata)
+                .text(getDisplayName(value)))
             }
           })
         } else if ($("#class-vis").is(":checked")) {
@@ -205,7 +243,10 @@
             fetchLessons(function (result) {
               for (var i = 0; i < result.length; ++i) {
                 var value = result[i]
-                $visibilitySelect.append($("<option />").val(value.id).text(value.name))
+                $visibilitySelect.append($("<option />")
+                  .val(value.id)
+                  .attr("selected", visibility === 'class' && value.id === selectedVisibdata)
+                  .text(value.name))
               }
             })
         }
@@ -214,9 +255,30 @@
 
       }
 
-      changeLab()
+      changeLab();
+
+      scrollToFirstSkill();
 
       $("#radiobtns").click(function() {
         changeLab()
+      });
+
+      $("#skills-select, #section-select").change(function(e) {
+        var selectedResId = "{{data.selected_resource|escapejs}}";
+        var selectedSkills = $('#skills-select').val();
+        var selectedSection = $('#section-select').val();
+        var $resourcesSelect = $('#resources-select');
+
+        fetchResources(selectedSkills, selectedSection, function(result) {
+          $resourcesSelect.find('option').not(':first').remove();
+          for (var i = 0; i < result.length; ++i) {
+              var value = result[i];
+              var $newOption = $("<option />")
+                .val(value.id)
+                .text(value.title)
+                .attr("selected", value.id === selectedResId);
+              $resourcesSelect.append($newOption)
+            }
+        })
       })
     })
