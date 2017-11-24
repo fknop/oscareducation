@@ -340,7 +340,7 @@ def get_thread(request, id):
         "thread": thread,
         "messages": messages,
         "reply_to": reply_to,
-        "last_visit": last_visit
+        "last_visit": last_visit,
         "edit": edit
     })
 
