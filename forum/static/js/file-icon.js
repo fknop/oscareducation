@@ -1,5 +1,6 @@
 var fileicon = function (filename) {
-                var ext = filename.split(".").pop();
+                var ext = ''
+                ext = '.' + filename.split(".").pop();
                 var fa = '';
     
                 switch(ext) {

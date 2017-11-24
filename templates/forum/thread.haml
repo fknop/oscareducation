@@ -39,8 +39,14 @@
     %script{type: "text/javascript", src: "{% static 'js/file-icon.js' %}"}
 
   :javascript
-  $(document).ready(function(){
-    console.debug($('.attach-btn').parent().attr('href'))
-    $('.attach-btn').addClass( fileicon($(this).parent().attr('href')));
-  }); 
+    $(document).ready(function(){
+      console.log($('.attach-btn').parent().attr('href'))
+
+      
+      $('.attach-btn').each(function() {
+        $(this).addClass(fileicon($(this).parent().attr('href')))
+      }
+
+      )
+    }); 
 

@@ -6,11 +6,11 @@
       %a.message-anchor{href: "#message-{{message.id}}"} {{message.created_date}}
   .panel-body{:class => "message-content"}= message.content
   .panel-footer
-    %span.flex-spacer
-    -for attach in {{message.attachments}}
+    -for attach in message.attachments
       %a.btn.btn-default.btn-sm{:href => "{{attach.file.url}}" }
         %i.attach-btn
         {{attach.file.name}}
+    %span.flex-spacer
     -if user|can_edit:message
       %a
         %i.fa.fa-edit.edit-btn
