@@ -8,3 +8,4 @@ oscar/settings_local.py
 */migrations/
 documentation/build/
 .DS_Store
+media/

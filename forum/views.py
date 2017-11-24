@@ -43,7 +43,6 @@ class MessageReplyForm(forms.ModelForm):
 def require_login(function):
     return login_required(function, login_url="/accounts/usernamelogin")
 
-
 @require_GET
 @require_login
 def forum_dashboard(request):

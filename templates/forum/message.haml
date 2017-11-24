@@ -23,6 +23,9 @@
     -else
       %div= message.content
   .panel-footer
+    - for attach in message.attachements
+        %a{:href => "{{attach.file.url}}" }= attach.file.name
+          %i.attach-btn#btn
     %span.flex-spacer
     -if user|can_update:message
       %form{:action => "/forum/thread/{{message.thread.id}}/delete/{{message.id}}", :method => "POST"} {% csrf_token %}
@@ -37,6 +40,10 @@
       %a.edit-btn{:href => "?edit={{message.id}}#message-{{message.id}}"}
         %i.fa.fa-edit
 
+    -if user|can_edit:message
+      %a
+        %i.fa.fa-edit.edit-btn
+    %input#message_id{:type => "hidden", :value => ""}
     %a{:href => "?reply_to={{message.id}}#message-{{message.id}}"}
       %i.fa.fa-reply.reply-btn#btn
 

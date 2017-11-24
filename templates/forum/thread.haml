@@ -39,6 +39,7 @@
 -block javascript
   -compress js
     %script{type: "text/javascript", src: "{% static 'js/readmore.js' %}"}
+    %script{type: "text/javascript", src: "{% static 'js/file-icon.js' %}"}
   :javascript
     $(document).ready(function() {
     
@@ -47,6 +48,8 @@
         moreLink: ' <a href="#" class="more">Afficher la suite</a>',
         lessLink: ' <a href="#" class="less">Afficher moins</a>',
       });
+
+      $('.attach-btn').addClass( fileicon($(this).parent().attr('href')));
     
       $textarea = $('#content')
       $editTextarea = $('#edit-textarea')
@@ -73,4 +76,5 @@
       });
 
     })
+
 
