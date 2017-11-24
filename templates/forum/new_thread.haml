@@ -28,16 +28,16 @@
           %label{:for => 'title'} Titre
           - for err in errors
             {% if err.field == 'title' %}
-                  .alert.alert-danger{ :role => 'alert'}
-                    %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
-                    %span Erreur: #{err.msg}
+              .alert.alert-danger{ :role => 'alert'}
+                %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+                %span Erreur: #{err.msg}
             {% endif %}
           %input.form-control#title-tf{:type => 'text', :name => 'title', :value => "#{data.title}" }
 
           #radiobtns
             %span.radio
-                %label
-                    %input#pvt-vis{'type':'radio', 'name':'visibility', 'value':'private', 'checked': true} Privé
+              %label
+                  %input#pvt-vis{'type':'radio', 'name':'visibility', 'value':'private', 'checked': true} Privé
             %span.radio
                 %label
                     %input#class-vis{:type => 'radio', :value => 'class', :name => 'visibility'} Classe
@@ -53,7 +53,9 @@
                       %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
                       %span Erreur: #{err.msg}
               {% endif %}
-            %input.form-control{:type => 'text', :name => 'visibdata', :value => "#{data.visibdata}"}
+
+            %select#select-visibility.form-control{:name => 'visibdata'}
+                %option{:value => "#{user.id}"}= user.username
 
 
           %div
@@ -64,7 +66,32 @@
                       %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
                       %span Erreur: #{err.msg}
               {% endif %}
-            %input.form-control#skills-tf{:type => 'text', :name => 'skills', :value => "#{data.skills}"}
+            %select.form-control#skills-select{:name => 'skills', :multiple => 'true', :size => 6}
+              - for skill in data.skills
+                -if skill|is_skill_selected:data.selected_skills
+                  %option{:value => "#{skill.id}", :selected}
+                    %span= skill.code
+                    %span= skill.name
+                -else
+                  %option{:value => "#{skill.id}"}
+                    %span= skill.code
+                    %span= skill.name
+
+
+            %label{:for => 'section'} UAA
+            %select.form-control#section-select{:name => 'section'}
+              -if data.selected_section is None
+                %option{:value => "", :selected} Sélectionnez une UAA (optionel)
+              -if data.selected_section is not None
+                %option{:value => ""} Sélectionnez une UAA (optionel)
+              - for section in data.sections
+                -if section|is_section_selected:data.selected_section
+                  %option{:value => "#{section.id}", :selected}
+                    %span= section.name
+                -else
+                  %option{:value => "#{section.id}"}
+                    %span= section.name
+
 
           %div
             %label{:for => 'content'} Message
@@ -86,6 +113,12 @@
   :javascript
     $(document).ready( function() {
 
+      var $visibilitySelect = $('#select-visibility')
+
+      var lessons = []
+      var professors = []
+      var users = []
+
       switch(visibility)
       {
         case 'private':
@@ -99,15 +132,86 @@
         break;
       }
 
+      function fetchUsers (callback) {
+        if (users.length > 0) {
+          callback(users);
+        }
+        else {
+          $.getJSON('/forum/write/users', function (result) {
+            users = result.data
+            callback(users)
+          })
+        }
+
+
+      }
+
+      function fetchProfessors (callback) {
+        if (professors.length > 0) {
+          callback(professors);
+        }
+        else {
+          $.getJSON('/forum/write/professors', function (result) {
+            professors = result.data
+            callback(professors)
+          })
+        }
+
+      }
+
+      function fetchLessons (callback) {
+        if (lessons.length > 0) {
+          callback(lessons);
+        }
+        else {
+          $.getJSON('/forum/write/lessons', function (result) {
+            lessons = result.data
+            callback(lessons)
+          })
+        }
+      }
+
+      function getDisplayName(value) {
+        if (value.first_name && value.first_name.length > 0 && value.last_name && value.last_name.length > 0) {
+          return value.first_name + ' ' + value.last_name
+        }
+
+        return value.username
+      }
+
       var changeLab = function () {
 
         if ($("#public-vis").is(":checked")) {
           $(visibdatalabel).text("Professeur")
+          $visibilitySelect.empty()
+          fetchProfessors(function (result) {
+            for (var i = 0; i < result.length; ++i) {
+              var value = result[i]
+              $visibilitySelect.append($("<option />").val(value.id).text(getDisplayName(value)))
+            }
+          })
         } else if ($("#pvt-vis").is(":checked")) {
           $(visibdatalabel).text("Destinataire")
+          $visibilitySelect.empty()
+          fetchUsers(function (result) {
+            for (var i = 0; i < result.length; ++i) {
+              var value = result[i]
+              $visibilitySelect.append($("<option />").val(value.id).text(getDisplayName(value)))
+            }
+          })
         } else if ($("#class-vis").is(":checked")) {
             $(visibdatalabel).text("Classe")
+            $visibilitySelect.empty()
+            fetchLessons(function (result) {
+              for (var i = 0; i < result.length; ++i) {
+                var value = result[i]
+                $visibilitySelect.append($("<option />").val(value.id).text(value.name))
+              }
+            })
         }
+
+
+
       }
 
       changeLab()
