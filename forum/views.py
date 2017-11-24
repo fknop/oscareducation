@@ -274,7 +274,7 @@ def post_create_thread(request):
             original_message = Message(content=params['content'], thread=thread, author=params['author'])
             original_message.save()
 
-        return redirect('/forum/thread/' + str(thread.id))
+        return redirect(thread)
 
     else:
         skills, sections = get_skills(request)
@@ -390,12 +390,21 @@ def get_thread(request, id):
     messages = thread.messages()
 
     reply_to = request.GET.get('reply_to')
+    edit = request.GET.get('edit')
+
+    if edit is not None:
+        to_edit = get_object_or_404(Message, pk=edit)
+        if not can_update(thread, to_edit, request.user):
+            edit = None
+        else:
+            edit = to_edit.id
 
     return render(request, "forum/thread.haml", {
         "user": request.user,
         "thread": thread,
         "messages": messages,
-        "reply_to": reply_to
+        "reply_to": reply_to,
+        "edit": edit
     })
 
 
@@ -407,11 +416,74 @@ def reply_thread(request, id):
     author = User.objects.get(pk=request.user.id)
     if form.is_valid():
         content = form.cleaned_data['content']
-        message = Message.objects.create(content=content, thread=thread, author=author)
 
-        if message_id is not None:
-            parent_message = get_object_or_404(Message, pk=message_id)
-            message.parent_message = parent_message
+        with transaction.atomic():
+            message = Message.objects.create(content=content, thread=thread, author=author)
 
-        message.save()
+            if message_id is not None:
+                parent_message = get_object_or_404(Message, pk=message_id)
+                message.parent_message = parent_message
+
+            message.save()
+            thread.modified_date = message.created_date
+            thread.save()
+
         return redirect(message)
+    else:
+        return HttpResponse(status=400, content="Malformed request")
+
+
+def can_update(thread, message, user):
+    if message.thread_id != thread.id:
+        return False
+
+    if len(message.replies()) > 0:
+        return False
+
+    if thread.is_private():
+        return message.author.id == user.id
+    elif thread.is_public_professor():
+        professor = Professor.objects.filter(user=user)
+        return message.author.id == user.id or (professor is not None and thread.professor.id == professor.id)
+    elif thread.is_public_lesson():
+        professors = thread.lesson.professors.all()
+        professor = Professor.objects.filter(user=user)
+        condition = message.author.id == user.id
+        if professor is not None:
+            return condition or professor in professors
+        else:
+            return condition
+
+
+@require_POST
+@require_login
+def edit_message(request, id, message_id):
+    thread = get_object_or_404(Thread, pk=id)
+
+    message = get_object_or_404(Message, pk=message_id)
+
+    if not can_update(thread, message, request.user):
+        return HttpResponse(status=403, content="Permissions missing to edit this message")
+
+    content = request.POST.get("content")
+    if content is None or len(content) == 0:
+        return HttpResponse(status=400, content="Missing content")
+
+    message.content = content
+    message.save()
+
+    return redirect(message)
+
+
+@require_POST
+@require_login
+def delete_message(request, id, message_id):
+    thread = get_object_or_404(Thread, pk=id)
+    message = get_object_or_404(Message, pk=message_id)
+
+    if not can_update(thread, message, request.user):
+        return HttpResponse(status=403, content="Permissions missing to delete this message")
+
+    message.delete()
+
+    return redirect(thread)

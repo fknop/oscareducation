@@ -3,10 +3,21 @@
     flex-direction: row;
 }
 
+textarea.edit {
+    width: 100%;
+    height: 100%;
+    margin: 0%;
+    padding: 10px;
+    resize: vertical;
+    border-style: dotted;
+}
 
-.reply-btn, .edit-btn {
+.reply-btn, .edit-btn, .delete-btn {
     cursor: pointer;
+    background: none;
     margin-left: 5px;
+    color: #f58025;
+    border: 0;
 }
 
 .flex {

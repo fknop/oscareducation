@@ -25,12 +25,41 @@
 
   .messages
     - for message in messages
-      {% message_partial message user reply_to 0 %}
+      {% message_partial message user reply_to edit 0 %}
 
-  .reply-block
-    %form{:action =>'' , :method => 'post'} {% csrf_token %}
-      %textarea.form-control#content{:name => 'content'}
-      .flex
-        .flex-spacer
-        %button.btn.btn-primary.btn-lg#btn{:type => "submit"} Reply
+  -if reply_to is None
+    .reply-block
+      %form{:action =>'' , :method => 'post'} {% csrf_token %}
+        %textarea.form-control#content{:name => 'content'}
+        .flex
+          .flex-spacer
+          %button.btn.btn-primary.btn-lg#reply-btn{:type => "submit", :disabled} Reply
 
+-block javascript
+  :javascript
+    $(document).ready(function() {
+      $textarea = $('#content')
+      $editTextarea = $('#edit-textarea')
+      $reply = $('#reply-btn')
+      $editConfirm = $('#edit-confirm')
+
+      editInitialValue = $editTextarea.text()
+
+
+      function disableButton($btn, disabled) {
+        $btn.prop('disabled', disabled)
+      }
+
+
+      disableButton($reply, $textarea.text().length == 0)
+      disableButton($editConfirm, true)
+
+      $editTextarea.bind('input propertychange', function() {
+        disableButton($editConfirm, !this.value || this.value.length == 0 || this.value == editInitialValue)
+      });
+
+      $textarea.bind('input propertychange', function() {
+        disableButton($reply, !this.value || this.value.length == 0)
+      });
+
+    })
