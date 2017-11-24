@@ -22,7 +22,7 @@ from .views import deepValidateAndFetch
 from dashboard import private_threads, public_class_threads, public_teacher_threads_student, get_thread_set
 from views import create_thread, reply_thread
 
-from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium_intro.selenium_tests.test import SeleniumTestCase
 from selenium_intro.selenium_tests.webdriver import CustomWebDriver
 from selenium.common.exceptions import NoSuchElementException
@@ -939,7 +939,8 @@ class TestResources(TestCase):
         self.assertEquals(data[0]["title"], self.res2.content['title'])
 
 
-class SeleniumTestCase(LiveServerTestCase):
+class SeleniumTestCase(StaticLiveServerTestCase):
+
     """
     A base test case for selenium, providing hepler methods for generating
     clients and logging in profiles.
@@ -1202,32 +1203,38 @@ class Scenario2Test(SeleniumTestCase):
     def test_login(self):
         
         self.wd.get(self.live_server_url)
-        #time.sleep(3)
+        time.sleep(1)
         self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
         #time.sleep(3)
+        time.sleep(1)
         self.wd.find_element_by_id('id_username').send_keys("Bob")
         #time.sleep(2)
-        
+        time.sleep(1)
         
         self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
         #time.sleep(2)
+        time.sleep(1)
         self.wd.find_element_by_id("id_password").send_keys('12345')
         #time.sleep(2)
+        time.sleep(1)
         self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
         #time.sleep(2)
+        time.sleep(1)
         self.wd.get(self.live_server_url + '/forum/')
+        time.sleep(1)
         #html body div.fond div.container.centralcontainer div.container-fluid.boxclasseTitle div.center table.table.table-hover tbody tr#42.thread td p.title
         #Information regarding w/e
         #<p class="title">Information regarding w/e</p>
         ##\34 2 > td:nth-child(1) > p:nth-child(1)
         #time.sleep(2)
         self.wd.find_element_by_xpath("//*[text()[contains(., 'Bob, replytothis')]]").click()
-        
+        time.sleep(1)
         self.wd.find_element_by_xpath('//textarea[@class="form-control"]').send_keys("this is not a reply")
+        time.sleep(1)
         self.wd.find_element_by_xpath('//button[@id="btn"]').click()
         time.sleep(2)
         self.wd.find_element_by_xpath("//*[text()[contains(., 'this is not a reply')]]")
-        
+        time.sleep(1)
         
         #time.sleep(2)
 class Scenario1Test(SeleniumTestCase):
@@ -1301,46 +1308,53 @@ class Scenario1Test(SeleniumTestCase):
         #time.sleep(3)
         self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
         #time.sleep(3)
+        time.sleep(1)
         self.wd.find_element_by_id('id_username').send_keys("Bob")
         #time.sleep(2)
-        
+        time.sleep(1)
         
         self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
         #time.sleep(2)
+        time.sleep(1)
         self.wd.find_element_by_id("id_password").send_keys('12345')
         #time.sleep(2)
+        time.sleep(1)
         self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
         #time.sleep(2)
+        time.sleep(1)
         self.wd.get(self.live_server_url + '/forum/write/')
         #time.sleep(2)
+        time.sleep(1)
         self.wd.find_element_by_xpath('//input[@name="title"]').send_keys("J ai une question mr John")
         self.wd.find_element_by_xpath('//input[@value="private"]').click()
         self.wd.find_element_by_xpath('//input[@name="visibdata"]').send_keys(str(self.teacher_user.id))
         self.wd.find_element_by_xpath('//input[@name="skills"]').send_keys(str(422230))
         self.wd.find_element_by_xpath('//textarea[@name="content"]').send_keys("je suis nul en Calcul, please Help")
-        
+        time.sleep(1)
         self.wd.find_element_by_xpath('//button[@type="submit"]').click()
-        
+        time.sleep(1)
         self.wd.get(self.live_server_url + '/accounts/logout/')
         self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
         self.wd.find_element_by_id('id_username').send_keys("John")
         #time.sleep(2)
-        
+        time.sleep(1)
         
         self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
         #time.sleep(2)
+        time.sleep(1)
         self.wd.find_element_by_id("id_password").send_keys('12345')
         #time.sleep(2)
+        time.sleep(1)
         self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
         
         self.wd.get(self.live_server_url + '/forum/')
         self.wd.find_element_by_xpath("//*[text()[contains(., 'J ai une question mr John')]]").click()
-        
+        time.sleep(1)
         self.wd.find_element_by_xpath('//textarea[@class="form-control"]').send_keys("Tu es trop nul en Math, rien à faire")
         self.wd.find_element_by_xpath('//button[@id="btn"]').click()
         time.sleep(2)
         self.wd.find_element_by_xpath("//*[text()[contains(., 'Tu es trop nul en Math, rien à faire')]]")
-        
+        time.sleep(1)
         self.wd.get(self.live_server_url + '/accounts/logout/')
         self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
         self.wd.find_element_by_id('id_username').send_keys("Alice")
@@ -1351,7 +1365,7 @@ class Scenario1Test(SeleniumTestCase):
         #time.sleep(2)
         self.wd.find_element_by_id("id_password").send_keys('12345')
         self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
-        
+        time.sleep(1)
         self.wd.get(self.live_server_url + '/forum/')
         with self.assertRaises(NoSuchElementException):
             self.wd.find_element_by_xpath("//*[text()[contains(., 'J ai une question mr John')]]")
