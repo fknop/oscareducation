@@ -23,9 +23,10 @@
     -else
       %div= message.content
   .panel-footer
-    - for attach in message.attachements
-        %a{:href => "{{attach.file.url}}" }= attach.file.name
-          %i.attach-btn#btn
+    -for attach in {{message.attachments}}
+      %a.btn.btn-default.btn-sm{:href => "{{attach.file.url}}" }
+        %i.attach-btn
+        {{attach.file.name}}
     %span.flex-spacer
     -if user|can_update:message
       %form{:action => "/forum/thread/{{message.thread.id}}/delete/{{message.id}}", :method => "POST"} {% csrf_token %}
