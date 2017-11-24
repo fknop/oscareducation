@@ -27,6 +27,8 @@
             =sesamath.1.year
 
           %td{width: "100px"}
+            -if user.student
+              {% leave_comment_partial "Commentaire sur: "|add:sesamath.1.title '' base.0  %}
             -if user.professor and add
               %form.remove-form{method: "POST", action: "{% url 'professor:remove_pedagogical_ressources' type base.id 'sesamath' sesamath.0 %}"}
                 -csrf_token
