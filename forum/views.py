@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
+import os
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -11,7 +11,7 @@ from django.views.decorators.http import require_POST, require_GET
 from django.http import JsonResponse
 
 # Create your views here.
-from forum.models import Thread, Message
+from forum.models import Thread, Message, MessageAttachment
 
 from promotions.models import Lesson
 from skills.models import Skill
@@ -19,11 +19,9 @@ from users.models import Professor, Student
 
 from dashboard import get_thread_set
 
-
-class MessageReplyForm(forms.ModelForm):
-    class Meta:
-        model = Message
-        fields = ('content',)
+class MessageReplyForm(forms.Form):
+    content =  forms.CharField()
+    file = forms.FileField(required=False) # one attachment per message
 
 
 def require_login(function):
@@ -319,16 +317,23 @@ def get_thread(request, id):
 def reply_thread(request, id):
     thread = get_object_or_404(Thread, pk=id)
     message_id = request.GET.get('reply_to')
-
-    form = MessageReplyForm(request.POST)  # request.Post contains the data we want
+    if not request.FILES:
+        return None
+    form = MessageReplyForm(request.POST, request.FILES)  # POST contains data, FILEs contains attachment
     author = User.objects.get(pk=request.user.id)
+
     if form.is_valid():
         content = form.cleaned_data['content']
+        file = form.cleaned_data['file']
         message = Message.objects.create(content=content, thread=thread, author=author)
 
         if message_id is not None:
             parent_message = get_object_or_404(Message, pk=message_id)
             message.parent_message = parent_message
+        
+        if file is not None:
+            name = os.path.basename(file.name)
+            MessageAttachment.objects.create(name=name, file=file, message=message)
 
         message.save()
         return redirect(message)

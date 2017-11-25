@@ -1,7 +1,8 @@
 .reply-block
-  %form{:action =>'' , :method => 'post'} {% csrf_token %}
+  %form{:action =>'' , :method => 'post', :enctype => 'multipart/form-data'} {% csrf_token %}
     %textarea.form-control#content{:name => 'content'}
     .flex
+      %input.upload{:type => "file", :name => 'file'}
       .flex-spacer
       %button.btn.btn-primary.btn-lg#btn{:type => "submit"} Reply
 

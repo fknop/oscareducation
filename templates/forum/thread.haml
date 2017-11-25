@@ -28,9 +28,10 @@
       {% message_partial message user reply_to 0 %}
 
   .reply-block
-    %form{:action =>'' , :method => 'post'} {% csrf_token %}
+    %form{:action =>'' , :method => 'post', :enctype => 'multipart/form-data'} {% csrf_token %}
       %textarea.form-control#content{:name => 'content'}
       .flex
+        %input.upload{:type => "file", :name => 'file'}
         .flex-spacer
         %button.btn.btn-primary.btn-lg#btn{:type => "submit"} Reply
 
@@ -40,9 +41,7 @@
 
   :javascript
     $(document).ready(function(){
-      console.log($('.attach-btn').parent().attr('href'))
 
-      
       $('.attach-btn').each(function() {
         $(this).addClass(fileicon($(this).parent().attr('href')))
       }
