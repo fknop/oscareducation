@@ -30,11 +30,14 @@
 
   -if reply_to is None
     .reply-block
-      %form{:action =>'' , :method => 'post'} {% csrf_token %}
+      %form{:action =>'' , :method => 'post', :enctype => 'multipart/form-data'} {% csrf_token %}
         %textarea.form-control#content{:name => 'content'}
         .flex
+          %input.upload{:type => "file", :name => 'file'}
           .flex-spacer
-          %button.btn.btn-primary.btn-lg#reply-btn{:type => "submit", :disabled} Reply
+          %button.btn.btn-primary.btn-lg#btn{:type => "submit", :disabled} Reply
+
+
 
 -block javascript
   -compress js
@@ -49,7 +52,9 @@
         lessLink: ' <a href="#" class="less">Afficher moins</a>',
       });
 
-      $('.attach-btn').addClass( fileicon($(this).parent().attr('href')));
+      $('.attach-btn').each(function() {
+        $(this).addClass(fileicon($(this).parent().attr('href')))
+      }
     
       $textarea = $('#content')
       $editTextarea = $('#edit-textarea')

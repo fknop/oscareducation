@@ -1,7 +1,12 @@
 .reply-block
+<<<<<<< HEAD
   %form{:action => '' , :method => 'post'} {% csrf_token %}
+=======
+  %form{:action =>'' , :method => 'post', :enctype => 'multipart/form-data'} {% csrf_token %}
+>>>>>>> feat: single file attachment ui and backend (#41)
     %textarea.form-control#content{:name => 'content'}
     .flex
+      %input.upload{:type => "file", :name => 'file'}
       .flex-spacer
       %a.btn.btn-secondary.btn-lg{:href => "./{{message.thread.id}}#message-{{message.id}}", :type => 'button'} Back
       %button.btn.btn-primary.btn-lg#reply-btn{:type => "submit", :disabled} Reply
