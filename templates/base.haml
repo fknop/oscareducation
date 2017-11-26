@@ -6,6 +6,20 @@
   Oscar
 
 -block bootstrap3_extra_head
+
+  -# Bind logged user to javascript global context
+  %script{'type':'text/javascript'}
+    var currentUser = {
+      id: {{user.id}},
+      username: "{{user.username}}",
+      first_name: "{{user.first_name}}",
+      last_name: "{{user.last_name}}",
+      -if user.professor
+        user_type: "{{"professor"}}"
+      -else
+        user_type: "{{"student"}}"
+    }
+
   %script{type: "text/javascript", async: None, src: "//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML"}
 
   -compress js
@@ -14,7 +28,7 @@
     %script{type: "text/javascript", src: "{% static 'js/angular-cookies.js' %}"}
     -#%script{type: "text/javascript", src: "{% static 'js/dataTable.js' %}"}
     %script{type: "text/javascript", src: "{% static 'js/responsive-img.js' %}"}
-    
+
 
   -compress css
     %link{href: "{% static 'css/keyboard.css' %}", rel: "stylesheet"}
@@ -32,7 +46,6 @@
   %link{rel: "icon", type: "image/png", href: "{% static 'img/favicon.png' %}"}
 
   -block head
-
 
 -block bootstrap3_content
   %div{class: "{% if user.professor %}fond{% endif %}"}
@@ -54,13 +67,15 @@
               .nav-global-shortcuts
                 %a.global-shortcut.home{href: "{% url 'professor:dashboard' %}", data-toggle: "tooltip", data-placement: "bottom", title: "Page d´accueil"}
                   %img{src: "{% static 'img/icons/Home.png' %}"}
-                %a.global-shortcut{href: "https://framateam.org/oscarpilote/", target: "_blank", data-toggle: "tooltip", data-placement: "bottom", title: "Forum"}
+                %a.global-shortcut{href: "/forum/", target: "_blank", data-toggle: "tooltip", data-placement: "bottom", title: "Forum"}
                   %img{src: "{% static 'img/icons/forum-white.png' %}"}
                 %a.global-shortcut{href: "{% url 'professor:main-education' %}", data-toggle: "tooltip", data-placement: "bottom", title: "Compétences et ressources"}
                   %img{src: "{% static 'img/icons/ressource-white.png' %}"}
           %ul.nav.navbar-nav.navbar-right.hidden-xs.hidden-sm
             %li
-              %a.icon.logout{href: "{% url 'logout' %}"}
+              %a.glyphicon.glyphicon-bell#bellicon{href:"#", data-toggle:"popover", title:"Notifications", data-html:"true", data-content:'<ul class="list-group"><li class="list-group-item">Aucune nouvelles notifications</li></ul>', data-placement:"bottom"}
+            %li
+              %a.icon.logout#logoutButton{href: "{% url 'logout' %}"}
                 -#%img{src: "{% static 'img/icons/logout.png' %}"}
           #toCollapse.collapse.navbar-collapse
             %ul.nav.navbar-nav.hidden-md.hidden-lg
@@ -101,6 +116,7 @@
 -block bootstrap3_extra_script
   -compress js
     %script{type: "text/javascript", src: "{% static 'js/base.js' %}"}
+    %script{type: "text/javascript", src: "{% static 'js/notification.js' %}"}
     %script{type: "text/javascript", src: "{% static 'js/jquery.keyboard.js' %}"}
     %script{type: "text/javascript", src: "{% static 'js/jquery.mousewheel.js' %}"}
     %script{type: "text/javascript", src: "{% static 'js/jquery.keyboard.extension-typing.js' %}"}

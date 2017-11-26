@@ -79,12 +79,13 @@
                             fichier
                           %a{href: "{{ MEDIA_URL }}{{ item.file }}", target: "_blank"}
                             {{item.file}}
-                    -if user.professor
-
-        %form.remove-form{method: "POST", action: "{% url 'professor:remove_pedagogical_ressources' type base.id 'resource' resource.id %}"}
-          -csrf_token
-          %button.btn.btn-danger.btn-xs.delete{type: "submit"}
-            supprimer
+                      -if user.student
+                        {% leave_comment_partial "Commentaire sur: "|add:resource.content.title resource.added_by_id resource.id  %}
+        -if user.professor
+          %form.remove-form{method: "POST", action: "{% url 'professor:remove_pedagogical_ressources' type base.id 'resource' resource.id %}"}
+            -csrf_token
+            %button.btn.btn-danger.btn-xs.delete{type: "submit"}
+              supprimer
 
 
 

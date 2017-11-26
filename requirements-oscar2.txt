@@ -28,3 +28,4 @@ sqlparse==0.2.3
 sphinx==1.6.3
 pandas==0.20.3
 xlrd==1.1.0
+channels==1.1.8

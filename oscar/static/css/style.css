@@ -996,7 +996,102 @@ h7 {
     background: transparent;
 }
 
+#logoutButton {
+  margin-right: 100px;
+}
 
- 
+#bellicon {
+  font-size: 25px;
+}
+
+#bellicon:hover {
+  background-color: transparent;
+  color: #787878;
+}
+
+#bellicon:focus {
+  background-color: transparent;
+  color: #787878;
+}
+
+.navbar-inner .popover {
+  max-width: 500px;
+  width: 400px;
+}
+
+.navbar-inner .popover.bottom .arrow::after {
+  border-bottom-color: #f58025;
+}
+
+.navbar-inner .popover-content {
+  padding: 0px;
+  max-height: 567px;
+  overflow: scroll;
+}
+
+.navbar-inner .list-group {
+  margin-bottom: 0px;
+}
+
+.navbar-inner .list-group-item:first-child {
+    margin-top: -1px;
+}
+
+.navbar-inner .popover-content .list-group-item-heading {
+  font-weight: bolder;
+  margin-bottom: 0px;
+}
+
+.popover-content .media-left {
+  padding-right: 5px
+}
+
+.notif-list-item-icon {
+  width: 50px;
+  padding: 1px;
+}
+
+.notif-item {
+  margin-top: 3px;
+  padding-bottom: 7px;
+  color: black;
+  text-decoration: none;
+}
 
 
+.notif-item .media {
+
+  border-bottom: 1px solid #d9dee6;
+}
+
+.notif-item:hover {
+  color: black;
+  text-decoration: none;
+}
+
+.notif-item:focus {
+  color: black;
+  text-decoration: none;
+}
+
+.notif-list-item-content p{
+    margin-bottom: 3px;
+}
+
+.notif-list-item-footer {
+    font-size: 12px;
+}
+
+.notif-list-item-footer p {
+    font-size: 12px;
+    margin-bottom: 0px;
+}
+
+.notif-item-footer-icon {
+  font-size: 11px;
+  margin-right: 3px;
+}
+
+.notif-item-emph {
+  color: #f58025;
+}

@@ -1,0 +1,4 @@
+-load static
+.pull-right
+  %a{href: "{% url 'forum:forum_write' %}?title={{ title | urlencode }}&visibdata={{ visibdata | urlencode }}&resource={{ resource | urlencode }}&visibility={{ visibility|urlencode}}"}
+    %img.icon{src: "{% static 'img/icons/Forum.png' %}", data-toggle: "tooltip", data-placement: "top", title: "Forum" }

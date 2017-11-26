@@ -50,6 +50,7 @@
           -#
             %a.btn.btn-primary{href: "{% url 'professor:lesson_student_list' lesson.pk %}"}
               Gérer mes élèves
+          {% leave_comment_partial "["|add:lesson.name|add:"]" lesson.id '' 'class' %}
           %a{target:"_blank", href: "{% url 'professor:lesson_student_password_page' lesson.pk %}"}
             %img.icon{src: "{% static 'img/icons/multy-mdp.png' %}", data-toggle: "tooltip", data-placement: "top", title: "générer les mots de passe pour toute la classe"}
           %a{href: "{% url 'professor:lesson_student_add' lesson.pk %}"}
@@ -72,6 +73,7 @@
                         %img.icon{src: "{% static 'img/icons/detail.png' %}", data-toggle: "tooltip", data-placement: "top", title: "détails de l´élève"}
                       %a{target:"_blank", href: "{% url 'professor:single_student_password_page' lesson.pk student.pk %}"}
                         %img.icon{src: "{% static 'img/icons/multy-mdp.png' %}", data-toggle: "tooltip", data-placement: "top", title: "regénérer un code pour l´élève"}
+                      {% leave_comment_partial "["|add:lesson.name|add:"]" student.user_id '' %}
 
                   %td
                     .pull-right
