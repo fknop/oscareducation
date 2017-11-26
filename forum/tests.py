@@ -6,6 +6,7 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase, Client, RequestFactory
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 import json
 
@@ -17,7 +18,7 @@ from promotions.models import Lesson, Stage
 from users.models import Professor, Student
 from skills.models import Skill, Section
 from resources.models import Resource
-from .models import Thread, Message
+from .models import Thread, Message, MessageAttachment
 from .views import deepValidateAndFetch
 from dashboard import private_threads, public_class_threads, public_teacher_threads_student, get_thread_set
 from views import create_thread, reply_thread
@@ -526,6 +527,87 @@ class TestPostReply(TestCase):
         response = self.c.post('/forum/thread/{}?reply_to=155'.format(self.thread_id), data={'content': content})
         self.assertEquals(response.status_code, 404)
 
+class TestAttachment(TestCase):
+    def setUp(self):
+        self.first_user = User(username="Alice")
+        self.first_user.set_password('12345')
+        self.first_user.save()
+        self.second_user = User(username="Bob")
+        self.second_user.set_password('12345')
+        self.second_user.save()
+        self.third_user = User(username="Trudy")
+        self.third_user.save()
+        self.first_student = Student(user=self.first_user)
+        self.first_student.save()
+        self.second_student = Student(user=self.second_user)
+        self.second_student.save()
+        self.teacher = Professor(user=self.third_user)
+        self.teacher.save()
+        self.stage = Stage(id=1, name="Stage1", level=1)
+        self.stage.save()
+        self.lesson = Lesson(id=1, name="Lesson 1", stage_id=1)
+        self.lesson.save()
+        self.thread_lesson = Thread.objects.create(author=self.first_user, lesson=self.lesson, title="Thread 1", id=1)
+        self.thread_lesson.save()
+        self.thread_id = self.thread_lesson.id
+        self.message = Message.objects.create(author=self.first_user, content="Content of message",
+                                              thread=self.thread_lesson, created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
+        self.message.save()
+        self.c = Client()
+        self.c.login(username='Alice', password='12345')
+        self.c2 = Client()
+        self.c2.login(username='Bob', password='12345')  
+        self.file = SimpleUploadedFile('file.txt', b'OOOOOOOOOOOOOOOOOOOO')  
+        self.attachment = MessageAttachment.objects.create(name=self.file.name, file=self.file, message=self.message)
+        self.attachment.save()
+
+    def test_reply_thread_with_attachment(self):
+        content = 'content of the new message'
+        file = SimpleUploadedFile('file.png', b'AAAAAAAA', content_type='image/png')
+        response = self.c.post('/forum/thread/{}'.format(self.thread_id), data={'content': content, 'file':file})
+
+        messages = Message.objects.all().filter(thread=self.thread_lesson)
+
+        self.assertEquals(messages.last().content, content)
+        self.assertTrue(messages.last().attachments()[0])
+        self.assertEquals(response.status_code, 302)
+
+    def test_reply_parent_message_with_attachment(self):
+        content = 'content of the new message'
+        response = self.c.post('/forum/thread/{}'.format(self.thread_id), data={'content': content})
+
+        messages = Message.objects.all().filter(thread=self.thread_lesson)
+
+        self.assertEquals(messages.last().content, content)
+        self.assertEquals(response.status_code, 302)  # 302 because redirects
+        
+        file = SimpleUploadedFile('file1', b'AAAAAAAA', content_type='image/png')
+        content = 'content'
+        response = self.c.post('/forum/thread/{}?reply_to={}'.format(self.thread_id, messages.last().id),
+                               data={'content': content,
+                                     'file':file})
+        self.assertEquals(response.status_code, 302)
+
+    def test_edit_message_and_attachment(self):
+        new_content = "New Content"
+        new_file = SimpleUploadedFile('file.png', b'AAAAAAAA', content_type='image/png')
+        response = self.c.post('/forum/thread/{}/edit/{}'.format(self.thread_lesson.id, self.message.id), data={
+            "content": new_content,
+            "file": new_file
+        })
+
+        self.assertEquals(response.status_code, 302)
+        self.assertEquals(Message.objects.get(pk=self.message.id).content, new_content)
+        self.assertFalse(Message.objects.get(pk=self.message.id).attachments()[0].file == self.attachment.file)
+    
+    def test_delete_message_and_attachments(self):
+        response = self.c.post('/forum/thread/{}/delete/{}'.format(self.thread_lesson.id, self.message.id))
+
+        self.assertEquals(response.status_code, 302)
+        self.assertFalse(Message.objects.filter(pk=self.message.id).exists())
+        self.assertFalse(MessageAttachment.objects.filter(pk=self.attachment.id).exists())
+
+    
 
 class TestPostThread(TestCase):
     def setUp(self):
