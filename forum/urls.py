@@ -8,6 +8,7 @@ from . import views
 # These urls are prefixed by forum/
 urlpatterns = [
     url(r'^$', views.forum_dashboard, name='forum_dashboard'),
+    url(r'^mail/$', views.write_mail, name='write_mail'),
     url(r'^write/$', views.create_thread, name='forum_write'),
     url(r'^write/users/$', views.get_users, name='get_users'),
     url(r'^write/professors/$', views.get_professors, name='get_professors'),

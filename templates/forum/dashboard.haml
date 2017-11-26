@@ -4,12 +4,9 @@
 -load student_tags
 -load compress
 
-
-
 -block head
 	-compress css
-    %link{:rel => "stylesheet", :href => "{% static 'css/dashboard.css' %}" }
-
+    	%link{:rel => "stylesheet", :href => "{% static 'css/dashboard.css' %}" }
 
 -block breadcrumb
 	%ol.breadcrumb
@@ -18,25 +15,30 @@
 
 -block content
 	{% if user.id is not None %}
-
 		.page-header
 			%h1 Forum - {{ user.username }}
 
 		.container-fluid.boxclasseTitle
 			%input{:type => "search", :id => "search", :placeholder => "Chercher..."}
+			&nbsp;
+			%input{:type => "checkbox", :id => "display_private"}>&nbsp;Messages privés
+			/
+				%select{:id => "search_lesson"}
+					-for lesson in lessons
+						%option{:value => "{{lesson.id}}"}>{{lesson.name}}
 			.center
-
 		    	%table.table.table-hover
 		    		%tr{:class => "forum"}
-		    			%th 
+		    			%th
 		    				%center Titre
-		          		%th 
+		          		%th
 		          			%center Auteur
 		          		%th
 		          			%center Compétence(s)
 		          		%th
 		          			%center Date
-
+		          		%th
+		          			%center Type
 
 		        	{% if threads %}
 		        		-for thread in threads
@@ -53,9 +55,17 @@
 							            Aucune compétence liée
 							        {% endif %}
 						        %td {{thread.modified_date}}
+						        %td
+						        	{% if thread.lesson_id %}
+						        		Classe
+						        	{% elif thread.professor_id %}
+						        		Public
+						        	{% elif thread.recipient_id %}
+						        		Privé
+						        	{% endif %}
 			    	{% else %}
 			    		%tr
-			    			%td{:colspan => "4"} Aucune conversation trouvée
+			    			%td{:colspan => "5"} Aucune conversation trouvée
 
 			    	{% endif %}
 				%a.btn.btn-primary.btn-lg{:href => "/forum/write/"}>Démarrer une nouvelle discussion
@@ -65,6 +75,20 @@
 
 -block javascript
 	:javascript
+		// Display private threads
+		$(document).ready(function(){
+			$("#display_private").click(function(){
+				if($(this).is(':checked')){
+					$("tr").filter(function(){
+						$(this).toggle($(this).text().indexOf("Privé") > -1)
+					});
+					$(".forum").show();
+				}else{
+					$("tr").show();
+				}
+			});
+		});
+
 		$(document).ready(function(){
 			$("tr").click(function(){
 				if($(this).attr("id")){
@@ -80,5 +104,48 @@
 					$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
 				});
 				$(".forum").show();
+			});
+		});
+
+		$(document).ready(function(){
+			$("th").each(function(col){
+				$(this).hover(function(){
+					$(this).addClass('focus');
+				},
+				function(){
+					$(this).removeClass('focus');
+				});
+
+				$(this).click(function(){
+					if($(this).is('.asc')){
+						$(this).removeClass('asc');
+						$(this).addClass('desc selected');
+						sortOrder = -1;
+					}else{
+						$(this).removeClass('desc');
+						$(this).addClass('asc selected');
+						sortOrder = 1;
+					}
+					$(this).siblings().removeClass('asc selected');
+					$(this).siblings().removeClass('desc selected');
+
+					var arrData = $('table').find('tbody >tr:has(td)').get();
+					arrData.sort(function(a, b){
+						var val1 = $(a).children('td').eq(col).text().toUpperCase();
+						var val2 = $(b).children('td').eq(col).text().toUpperCase();
+						if(col == 3){
+							return (new Date(val1) < new Date(val2)) ? -sortOrder : (new Date(val1) > new Date(val2)) ? sortOrder : 0;
+						}else{
+							if($.isNumeric(val1) && $.isNumeric(val2)){
+								return sortOrder == 1 ? val1-val2 : val2-val1;
+							}else{
+								return (val1 < val2) ? -sortOrder : (val1 > val2) ? sortOrder : 0;
+							}
+						}
+					});
+					$.each(arrData, function(index, row){
+						$('tbody').append(row);
+					});
+				});
 			});
 		});

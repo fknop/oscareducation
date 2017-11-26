@@ -1,0 +1,41 @@
+-extends "base.haml"
+-load static
+-load compress
+
+-block head
+  -compress css
+    %link{rel: "stylesheet", href: "{% static 'css/new_thread.css' %}" }
+
+-block breadcrumb
+  %ol.breadcrumb
+    %li
+      %a{href: "/forum"} Forum
+
+-block content
+  .panel.panel-primary#main-panel
+    .panel-heading.carot
+      %span.glyphicon.glyphicon-envelope
+      Envoyer un mail à la team Oscar
+    .panel-body
+      %form{:action => "/forum/mail/", :method => "post"} {% csrf_token %}
+      	%div
+      		%label{:for => "title"} Objet
+      		- for err in errors
+	            {% if err.field == 'title' %}
+	                  .alert.alert-danger{ :role => 'alert'}
+	                    %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+	                    %span Erreur: #{err.msg}
+	            {% endif %}
+      		%input.form-control#title-tf{:type => "text", :name => "title", :value => "#{data.title}"}
+
+      		%label{:for => "body"} Message
+      		- for err in errors
+              	{% if err.field == "body" %}
+                    .alert.alert-danger{ :role => 'alert'}
+                      %span.glyphicon.glyphicon-exclamation-sign{ :aria-hidden =>'true'}
+                      %span Erreur: #{err.msg}
+              	{% endif %}
+      		%textarea.form-control#content{:rows => '8', :name => 'body'}>#{data.body}
+
+      		.pull-right
+            %button.btn.btn-lg.pull-right.carot#validb{:type => 'submit', :value => 'Submit'} Envoyer

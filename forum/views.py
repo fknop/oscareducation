@@ -11,6 +11,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.timezone import utc
 from django.views.decorators.http import require_POST, require_GET
+from django.core.mail import EmailMessage
+from oscar.settings import EMAIL_HOST_USER
 
 from notification.notif_types import NOTIF_TYPES
 from notification.notification_manager import NOTIF_MEDIUM, sendNotification
@@ -548,6 +550,63 @@ def reply_thread(request, id):
     else:
         return HttpResponse(status=400, content="Malformed request")
 
+@require_login
+def write_mail(request):
+    if request.method == 'GET':
+        message_id = request.GET.get('message')
+        message = get_object_or_404(Message, pk=message_id)
+
+        return render(request, "forum/write_mail.haml", {'errors' : [], "data": {
+            'title' : "",
+            'body' : "\n\n--------------------\n" + message.content
+        }})
+
+    if request.method == "POST":
+        errors = []
+        params = checkFields(request, errors)
+
+        if len(errors) == 0:
+            title = params["title"]
+            body = "De " + request.user.email + " :\n" + params["body"]
+            mail_from = request.user.email
+            mail_to = EMAIL_HOST_USER
+
+            mail = EmailMessage(title,body,mail_from,[mail_to])
+            mail.send(fail_silently=False)
+
+            return redirect("/forum")
+        else:
+            return render(request, "forum/write_mail.haml", { "errors" : errors, "data": params })
+
+
+class MailForm(forms.Form):
+    title = forms.CharField()
+    body = forms.CharField()
+
+def checkFields(request, errors):
+
+    params = {}
+    form = MailForm(request.POST)
+
+    form.is_valid()
+
+    try:
+        params['title'] = form.cleaned_data['title']
+    except:
+        params['title'] = ""
+        errors.append({ "field": "title", "msg" :"L'objet du mail ne peut pas être vide"})
+
+    try:
+        params['body'] = form.cleaned_data['body']
+    except:
+        params['body'] = ""
+        errors.append({ "field": "body", "msg" :"Le corps du mail ne peut pas être vide"})
+
+    return params
+
+
+
+
 
 def can_update(thread, message, user):
     if message.thread_id != thread.id:
@@ -603,3 +662,4 @@ def delete_message(request, id, message_id):
     message.delete()
 
     return redirect(thread)
+
