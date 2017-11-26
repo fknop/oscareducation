@@ -35,7 +35,7 @@
         .flex
           %input.upload{:type => "file", :name => 'file'}
           .flex-spacer
-          %button.btn.btn-primary.btn-lg#btn{:type => "submit", :disabled} Reply
+          %button.btn.btn-primary.btn-lg#reply-btn{:type => "submit", :disabled} Reply
 
 
 
@@ -54,7 +54,7 @@
 
       $('.attach-btn').each(function() {
         $(this).addClass(fileicon($(this).parent().attr('href')))
-      }
+      })
     
       $textarea = $('#content')
       $editTextarea = $('#edit-textarea')

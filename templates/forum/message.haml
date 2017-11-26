@@ -13,10 +13,11 @@
             %a.message-anchor{href: "#message-{{message.id}}"} {{message.modified_date}}
   .panel-body{:class => "message-content"}
     -if message|is_editing:edit
-      %form{:action => "/forum/thread/{{message.thread.id}}/edit/{{message.id}}", :method => "POST"}
+      %form{:action => "/forum/thread/{{message.thread.id}}/edit/{{message.id}}", :method => "POST", :enctype => 'multipart/form-data'}
         {% csrf_token %}
         %textarea.edit#edit-textarea{:name => "content"}= message.content
         %div.flex
+          %input.upload{:type => "file", :name => 'file'}
           .flex-spacer
           %a.btn.btn-secondary.btn-lg{:href => "./{{message.thread.id}}#message-{{message.id}}", :type => 'button'} Back
           %button.btn.btn-primary#edit-confirm{:type => "submit", :disabled} Confirm
@@ -41,9 +42,6 @@
       %a.edit-btn{:href => "?edit={{message.id}}#message-{{message.id}}"}
         %i.fa.fa-edit
 
-    -if user|can_edit:message
-      %a
-        %i.fa.fa-edit.edit-btn
     %input#message_id{:type => "hidden", :value => ""}
     %a{:href => "?reply_to={{message.id}}#message-{{message.id}}"}
       %i.fa.fa-reply.reply-btn#btn

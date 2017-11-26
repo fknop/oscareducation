@@ -1,9 +1,5 @@
 .reply-block
-<<<<<<< HEAD
-  %form{:action => '' , :method => 'post'} {% csrf_token %}
-=======
   %form{:action =>'' , :method => 'post', :enctype => 'multipart/form-data'} {% csrf_token %}
->>>>>>> feat: single file attachment ui and backend (#41)
     %textarea.form-control#content{:name => 'content'}
     .flex
       %input.upload{:type => "file", :name => 'file'}
