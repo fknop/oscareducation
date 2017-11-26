@@ -526,8 +526,6 @@ def get_thread(request, id):
 def reply_thread(request, id):
     thread = get_object_or_404(Thread, pk=id)
     message_id = request.GET.get('reply_to')
-    if not request.FILES:
-        return None
     form = MessageReplyForm(request.POST, request.FILES)  # POST contains data, FILEs contains attachment
     author = User.objects.get(pk=request.user.id)
 
