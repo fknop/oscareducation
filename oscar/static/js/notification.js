@@ -179,7 +179,7 @@ $(document).ready(function(){
     function addNewForumMsgTempParams(templateParams, newNotif) {
 
         templateParams.redirect_url = '/forum/thread/'
-          + newNotif.params.thread_id + '/' + '#message-' + newNotif.params.msg_id
+          + newNotif.params.thread_id + '#message-' + newNotif.params.msg_id
         templateParams.icon_src = '/static/img/icons/forum.png'
         templateParams.title = 'Forum: nouveau message'
         templateParams.content = newNotif.params.author.first_name + ' '
