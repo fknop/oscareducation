@@ -2,7 +2,11 @@
 from __future__ import unicode_literals
 
 
+
 from datetime import datetime
+import time
+
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase, Client, RequestFactory
@@ -32,6 +36,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 class FakeRequest:
     def __init__(self, user):
         self.user = user
+
 
 
 class ThreadModelTest(TestCase):
@@ -689,6 +694,7 @@ class TestGetWritePage(TestCase):
         response = self.c.get('/forum/write/')
         self.assertEquals(response.status_code, 200)
 
+
 class TestMisc(TestCase):
     def setUp(self):
         self.user = User(username="Brandon")
@@ -941,7 +947,6 @@ class TestResources(TestCase):
 
 
 class SeleniumTestCase(StaticLiveServerTestCase):
-
     """
     A base test case for selenium, providing hepler methods for generating
     clients and logging in profiles.
@@ -969,7 +974,9 @@ class Auth(SeleniumTestCase):
 
     # Just like Django tests, any method that is a Selenium test should
     # start with the "test_" prefix.
+
     def POPOtest_login(self):
+
         """
         Django Admin login test
         """
@@ -994,11 +1001,14 @@ class Auth(SeleniumTestCase):
         # on the index page and not the login page
         self.wd.find_css("#content-main")
 
+
+
         
 class SeleniumDashboardTest(SeleniumTestCase):
 
     def setUp(self):
         
+
         self.user = User(username="Bob")
         self.user.set_password('12345')
         self.user.save()
@@ -1055,11 +1065,11 @@ class SeleniumDashboardTest(SeleniumTestCase):
 
     def tearDown(self):
         self.wd.quit()
+
     def POPOtest_login(self):
         
         self.wd.get(self.live_server_url)
 
-        
         time.sleep(2)
         self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
         time.sleep(2)
@@ -1075,6 +1085,25 @@ class SeleniumDashboardTest(SeleniumTestCase):
         time.sleep(2)
         self.wd.find_element_by_link_text('French')
         time.sleep(2)
+        #time.sleep(3)
+        self.wd.find_element_by_xpath('//a[@href="/accounts/usernamelogin/"]').click()
+        #time.sleep(3)
+        self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
+        #time.sleep(3)
+        self.wd.find_element_by_id('id_username').send_keys("Vince")
+        #time.sleep(2)
+        
+        
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2)
+        self.wd.find_element_by_id("id_password").send_keys('12345')
+        #time.sleep(2)
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2) 
+        self.wd.find_element_by_link_text('English')
+        #time.sleep(2)
+        self.wd.find_element_by_link_text('French')
+        #time.sleep(2)
         self.wd.get(self.live_server_url + '/forum/')
         #html body div.fond div.container.centralcontainer div.container-fluid.boxclasseTitle div.center table.table.table-hover tbody tr#42.thread td p.title
         #Information regarding w/e
@@ -1090,6 +1119,16 @@ class SeleniumDashboardTest(SeleniumTestCase):
         self.wd.find_element_by_xpath("//*[text()[contains(., 'Information regarding spam')]]")
         time.sleep(2)
         
+
+        #time.sleep(2)
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Help')]]")
+        #time.sleep(2)
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Send help')]]")
+        #time.sleep(2)
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Information regarding w/e')]]")
+        #time.sleep(2)
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Information regarding spam')]]")
+        #time.sleep(2)
 
 class Scenario2Test(SeleniumTestCase):
 
@@ -1133,7 +1172,11 @@ class Scenario2Test(SeleniumTestCase):
         self.second_lesson.professors.add(self.teacher)
         self.second_lesson.save()
 
+
         self.thread = Thread(title="Bob, réponds avec un message", author=self.user, recipient=self.teacher_user)
+
+        self.thread = Thread(title="Bob, replytothis", author=self.user, recipient=self.teacher_user)
+
         self.thread.save()
 
         self.second_thread = Thread(title="Send help", author=self.second_user, lesson=self.second_lesson)
@@ -1151,6 +1194,7 @@ class Scenario2Test(SeleniumTestCase):
 
     def tearDown(self):
         self.wd.quit()
+
     def POPOtest_a_post_a_reply(self):
         
         self.wd.get(self.live_server_url)
@@ -1173,11 +1217,13 @@ class Scenario2Test(SeleniumTestCase):
         time.sleep(2)
         self.wd.get(self.live_server_url + '/forum/')
         time.sleep(2)
+        time.sleep(1)
         #html body div.fond div.container.centralcontainer div.container-fluid.boxclasseTitle div.center table.table.table-hover tbody tr#42.thread td p.title
         #Information regarding w/e
         #<p class="title">Information regarding w/e</p>
         ##\34 2 > td:nth-child(1) > p:nth-child(1)
         #time.sleep(2)
+
         self.wd.find_element_by_xpath("//*[text()[contains(., 'Bob, réponds avec un message')]]").click()
         time.sleep(2)
         self.wd.find_element_by_xpath('//textarea[@class="form-control"]').send_keys("ceci est un messsssage")
@@ -1256,7 +1302,16 @@ class Scenario2Test(SeleniumTestCase):
         self.wd.find_element_by_xpath('//button[@id="reply-btn"]').click()
         time.sleep(2)
         
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Bob, replytothis')]]").click()
+        time.sleep(1)
+        self.wd.find_element_by_xpath('//textarea[@class="form-control"]').send_keys("this is not a reply")
+        time.sleep(1)
+        self.wd.find_element_by_xpath('//button[@id="btn"]').click()
+        time.sleep(2)
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'this is not a reply')]]")
+        time.sleep(1)
         
+        #time.sleep(2)
 class Scenario1Test(SeleniumTestCase):
 
     def setUp(self):
@@ -1264,13 +1319,13 @@ class Scenario1Test(SeleniumTestCase):
         self.user = User(username="Bob")
         self.user.set_password('12345')
         self.user.save()
-        self.second_user = User(id=573, username="Alice")
+        self.second_user = User(username="Alice")
         self.second_user.set_password('12345')
         self.second_user.save()
-        self.teacher_user = User(id=574, username="John")
+        self.teacher_user = User(username="John")
         self.teacher_user.set_password('12345')
         self.teacher_user.save()
-        self.second_teacher_user = User(id=575, username="Nicolas")
+        self.second_teacher_user = User(username="Nicolas")
         self.second_teacher_user.save()
 
         self.student = Student(user=self.user, is_pending=False)
@@ -1287,23 +1342,30 @@ class Scenario1Test(SeleniumTestCase):
         self.second_stage = Stage(id=2, name="Stage2", level=1)
         self.second_stage.save()
 
+
         self.lesson = Lesson(id=1, name="Trigonométrie", stage_id=1)
+
         self.lesson.save()
         self.lesson.students.add(self.student)
         self.lesson.students.add(self.second_student)
         self.lesson.professors.add(self.teacher)
         self.lesson.save()
-
         self.second_lesson = Lesson(id=2, name="Analyse", stage_id=2)
         self.second_lesson.save()
         self.second_lesson.students.add(self.second_student)
         self.second_lesson.professors.add(self.teacher)
         self.second_lesson.save()
 
+
         self.thread = Thread(title="Problèmes avec les équations du premier degré", author=self.user, recipient=self.teacher_user)
         self.thread.save()
 
         self.second_thread = Thread(title="Aidez moi", author=self.second_user, lesson=self.second_lesson)
+        self.thread = Thread(title="Bob, replytothis", author=self.user, recipient=self.teacher_user)
+        self.thread.save()
+
+        self.second_thread = Thread(title="Send help", author=self.second_user, lesson=self.second_lesson)
+
         self.second_thread.save()
 
         self.third_thread = Thread(title="Information regarding w/e", author=self.teacher_user, professor=self.teacher)
@@ -1320,14 +1382,19 @@ class Scenario1Test(SeleniumTestCase):
         self.stage.skills.add(self.skill2)
         self.stage.save()
         
-        self.fourth_thread.save()
+
+
+        self.fourth_thread = Thread(title="Information regarding spam", author=self.teacher_user,
+                                    professor=self.teacher)
 
         # Instantiating the WebDriver will load your browser
         self.wd = CustomWebDriver()
 
     def tearDown(self):
         self.wd.quit()
+
     def POPOtest_message_public_au_prof_scenario3(self):
+
         self.wd.get(self.live_server_url)
         #time.sleep(3)
         self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
@@ -1421,6 +1488,53 @@ class Scenario1Test(SeleniumTestCase):
         time.sleep(200000)
         self.wd.find_element_by_xpath("//*[text()[contains(., 'Tu es trop nul en Math, tu devrais aller en Math 2')]]")
         time.sleep(2)
+        time.sleep(1)
+        self.wd.find_element_by_id('id_username').send_keys("Bob")
+        #time.sleep(2)
+        time.sleep(1)
+        
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2)
+        time.sleep(1)
+        self.wd.find_element_by_id("id_password").send_keys('12345')
+        #time.sleep(2)
+        time.sleep(1)
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2)
+        time.sleep(1)
+        self.wd.get(self.live_server_url + '/forum/write/')
+        #time.sleep(2)
+        time.sleep(1)
+        self.wd.find_element_by_xpath('//input[@name="title"]').send_keys("J ai une question mr John")
+        self.wd.find_element_by_xpath('//input[@value="private"]').click()
+        self.wd.find_element_by_xpath('//input[@name="visibdata"]').send_keys(str(self.teacher_user.id))
+        self.wd.find_element_by_xpath('//input[@name="skills"]').send_keys(str(422230))
+        self.wd.find_element_by_xpath('//textarea[@name="content"]').send_keys("je suis nul en Calcul, please Help")
+        time.sleep(1)
+        self.wd.find_element_by_xpath('//button[@type="submit"]').click()
+        time.sleep(1)
+        self.wd.get(self.live_server_url + '/accounts/logout/')
+        self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
+        self.wd.find_element_by_id('id_username').send_keys("John")
+        #time.sleep(2)
+        time.sleep(1)
+        
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        #time.sleep(2)
+        time.sleep(1)
+        self.wd.find_element_by_id("id_password").send_keys('12345')
+        #time.sleep(2)
+        time.sleep(1)
+        self.wd.find_element_by_xpath('//input[@value="Connexion"]').click()
+        
+        self.wd.get(self.live_server_url + '/forum/')
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'J ai une question mr John')]]").click()
+        time.sleep(1)
+        self.wd.find_element_by_xpath('//textarea[@class="form-control"]').send_keys("Tu es trop nul en Math, rien à faire")
+        self.wd.find_element_by_xpath('//button[@id="btn"]').click()
+        time.sleep(2)
+        self.wd.find_element_by_xpath("//*[text()[contains(., 'Tu es trop nul en Math, rien à faire')]]")
+        time.sleep(1)
         self.wd.get(self.live_server_url + '/accounts/logout/')
         self.wd.get(self.live_server_url + '/accounts/usernamelogin/')
         self.wd.find_element_by_id('id_username').send_keys("Alice")
@@ -1496,4 +1610,5 @@ class Scenario1Test(SeleniumTestCase):
         time.sleep(2)
         self.wd.find_element_by_xpath("//*[text()[contains(., 'trigono')]]")
         time.sleep(2)
-        #time.sleep(2)
+        time.sleep(1)
+        
