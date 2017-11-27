@@ -51,11 +51,15 @@ class Thread(models.Model):
     def get_absolute_url(self):
         return "/forum/thread/{}".format(self.id)
 
+def directory_path(attachment, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    return 'forum/{}/{}/{}'.format(attachment.message.thread.id, attachment.message.id, filename)
 
 class MessageAttachment(models.Model):
     name = models.CharField(max_length=255)  # The name of the uploaded file
-    file = models.FileField()
+    file = models.FileField(upload_to=directory_path)
     message = models.ForeignKey("Message")
+
 
 
 class Message(models.Model):

@@ -30,15 +30,19 @@
 
   -if reply_to is None
     .reply-block
-      %form{:action =>'' , :method => 'post'} {% csrf_token %}
+      %form{:action =>'' , :method => 'post', :enctype => 'multipart/form-data'} {% csrf_token %}
         %textarea.form-control#content{:name => 'content'}
         .flex
+          %input.upload{:type => "file", :name => 'file'}
           .flex-spacer
           %button.btn.btn-primary.btn-lg#reply-btn{:type => "submit", :disabled} Reply
+
+
 
 -block javascript
   -compress js
     %script{type: "text/javascript", src: "{% static 'js/readmore.js' %}"}
+    %script{type: "text/javascript", src: "{% static 'js/file-icon.js' %}"}
   :javascript
     $(document).ready(function() {
     
@@ -47,13 +51,15 @@
         moreLink: ' <a href="#" class="more">Afficher la suite</a>',
         lessLink: ' <a href="#" class="less">Afficher moins</a>',
       });
+
+      $('.attach-btn').each(function() {
+        $(this).addClass(fileicon($(this).parent().attr('href')))
+      })
     
       $textarea = $('#content')
       $editTextarea = $('#edit-textarea')
       $reply = $('#reply-btn')
       $editConfirm = $('#edit-confirm')
-
-      editInitialValue = $editTextarea.text()
 
 
       function disableButton($btn, disabled) {
@@ -62,10 +68,10 @@
 
 
       disableButton($reply, $textarea.text().length == 0)
-      disableButton($editConfirm, true)
+      disableButton($editConfirm, false)
 
       $editTextarea.bind('input propertychange', function() {
-        disableButton($editConfirm, !this.value || this.value.length == 0 || this.value == editInitialValue)
+        disableButton($editConfirm, !this.value || this.value.length == 0)
       });
 
       $textarea.bind('input propertychange', function() {
@@ -73,4 +79,5 @@
       });
 
     })
+
 

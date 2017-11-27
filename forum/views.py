@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 
+import os
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -18,7 +19,6 @@ from notification.notif_types import NOTIF_TYPES
 from notification.notification_manager import NOTIF_MEDIUM, sendNotification
 
 from django.http import JsonResponse
-
 
 # Create your views here.
 from numpy.ma import copy
@@ -40,6 +40,7 @@ class MessageReplyForm(forms.ModelForm):
         model = Message
         fields = ('content',)
 
+
 def require_login(function):
     return login_required(function, login_url="/accounts/usernamelogin")
 
@@ -52,6 +53,7 @@ def forum_dashboard(request):
         "user": request.user,
         "threads": threads
     })
+
 
 @require_login
 def create_thread(request):
@@ -150,7 +152,7 @@ def get_resources_list(request):
         else sections
 
     resources = set()
-    for skill_section in filtered_skills+filtered_sections:
+    for skill_section in filtered_skills + filtered_sections:
         for resource in skill_section.resource.all():
             if "from" in resource.content:
                 if resource.content["from"] == "skills_sesamathskill":
@@ -159,16 +161,16 @@ def get_resources_list(request):
                     special_resource = KhanAcademy.objects.get(pk=resource.content["referenced"])
                 resources.add(
                     frozenset({
-                        "id": resource.id,
-                        "title": special_resource.title
-                    }.items())
+                                  "id": resource.id,
+                                  "title": special_resource.title
+                              }.items())
                 )
             else:
                 resources.add(
                     frozenset({
-                        "id": resource.id,
-                        "title": resource.content["title"]
-                    }.items())
+                                  "id": resource.id,
+                                  "title": resource.content["title"]
+                              }.items())
                 )
 
     return [dict(res) for res in set(resources)]
@@ -285,10 +287,10 @@ def post_create_thread(request):
 
             sendNotification(getWSNotificationForNewThread(thread))
 
-
-            original_message = Message(content=params['content'], thread=thread, author=params['author'], created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
+            original_message = Message(content=params['content'], thread=thread, author=params['author'],
+                                       created_date=utc.localize(datetime.now()),
+                                       modified_date=utc.localize(datetime.now()))
             original_message.save()
-
 
             sendNotification(getNotificationForNewMessage(original_message))
 
@@ -312,7 +314,6 @@ def post_create_thread(request):
 
 
 def getWSNotificationForNewThread(thread):
-
     notif = {
         "medium": NOTIF_MEDIUM["WS"],
         "audience": [],
@@ -344,19 +345,19 @@ def getWSNotificationForNewThread(thread):
 
     elif thread.lesson != None:
         notif["type"] = NOTIF_TYPES["NEW_CLASS_FORUM_THREAD"]
-        notif["audience"] = [ 'notification-class-' + str(thread.lesson.id) ]
+        notif["audience"] = ['notification-class-' + str(thread.lesson.id)]
         notif["params"]["class"] = {
             "id": thread.lesson.id,
             "name": thread.lesson.name
         }
     elif thread.recipient != None:
         notif["type"] = NOTIF_TYPES["NEW_PRIVATE_FORUM_THREAD"]
-        notif["audience"] = [ 'notification-user-' + str(thread.recipient.id) ]
+        notif["audience"] = ['notification-user-' + str(thread.recipient.id)]
 
     return notif
 
-def getNotificationForNewMessage(message):
 
+def getNotificationForNewMessage(message):
     notif = getWSNotificationForNewThread(message.thread)
 
     notif["type"] = notif["type"].replace("thread", "message")
@@ -371,6 +372,7 @@ def getNotificationForNewMessage(message):
         notif["audience"] = ['notification-user-' + str(message.thread.author.id)]
 
     return notif
+
 
 class ThreadForm(forms.Form):
     section = forms.CharField()
@@ -499,7 +501,7 @@ def get_thread(request, id):
 
     attachments = ()
     # for m in messages:
-        # attachments += m.attachments()
+    # attachments += m.attachments()
 
     last_visit = get_last_visit(request.user, thread)
     reply_to = request.GET.get('reply_to')
@@ -526,19 +528,23 @@ def get_thread(request, id):
 def reply_thread(request, id):
     thread = get_object_or_404(Thread, pk=id)
     message_id = request.GET.get('reply_to')
-
-    form = MessageReplyForm(request.POST)  # request.Post contains the data we want
+    form = MessageReplyForm(request.POST, request.FILES)  # POST contains data, FILEs contains attachment
     author = User.objects.get(pk=request.user.id)
 
     if form.is_valid():
         content = form.cleaned_data['content']
-
+        file = form.cleaned_data['file']
         with transaction.atomic():
-            message = Message.objects.create(content=content, thread=thread, author=author, created_date=utc.localize(datetime.now()), modified_date=utc.localize(datetime.now()))
+            message = Message.objects.create(content=content, thread=thread, author=author,
+                                             created_date=utc.localize(datetime.now()),
+                                             modified_date=utc.localize(datetime.now()))
 
             if message_id is not None:
                 parent_message = get_object_or_404(Message, pk=message_id)
                 message.parent_message = parent_message
+            if file is not None:
+                name = os.path.split(file.name)[1]
+                MessageAttachment.objects.create(name=name, file=file, message=message)
 
             message.save()
             thread.modified_date = message.created_date
@@ -550,15 +556,16 @@ def reply_thread(request, id):
     else:
         return HttpResponse(status=400, content="Malformed request")
 
+
 @require_login
 def write_mail(request):
     if request.method == 'GET':
         message_id = request.GET.get('message')
         message = get_object_or_404(Message, pk=message_id)
 
-        return render(request, "forum/write_mail.haml", {'errors' : [], "data": {
-            'title' : "",
-            'body' : "\n\n--------------------\n" + message.content
+        return render(request, "forum/write_mail.haml", {'errors': [], "data": {
+            'title': "",
+            'body': "\n\n--------------------\n" + message.content
         }})
 
     if request.method == "POST":
@@ -571,20 +578,20 @@ def write_mail(request):
             mail_from = request.user.email
             mail_to = EMAIL_HOST_USER
 
-            mail = EmailMessage(title,body,mail_from,[mail_to])
+            mail = EmailMessage(title, body, mail_from, [mail_to])
             mail.send(fail_silently=False)
 
             return redirect("/forum")
         else:
-            return render(request, "forum/write_mail.haml", { "errors" : errors, "data": params })
+            return render(request, "forum/write_mail.haml", {"errors": errors, "data": params})
 
 
 class MailForm(forms.Form):
     title = forms.CharField()
     body = forms.CharField()
 
-def checkFields(request, errors):
 
+def checkFields(request, errors):
     params = {}
     form = MailForm(request.POST)
 
@@ -594,18 +601,15 @@ def checkFields(request, errors):
         params['title'] = form.cleaned_data['title']
     except:
         params['title'] = ""
-        errors.append({ "field": "title", "msg" :"L'objet du mail ne peut pas être vide"})
+        errors.append({"field": "title", "msg": "L'objet du mail ne peut pas être vide"})
 
     try:
         params['body'] = form.cleaned_data['body']
     except:
         params['body'] = ""
-        errors.append({ "field": "body", "msg" :"Le corps du mail ne peut pas être vide"})
+        errors.append({"field": "body", "msg": "Le corps du mail ne peut pas être vide"})
 
     return params
-
-
-
 
 
 def can_update(thread, message, user):
@@ -640,9 +644,17 @@ def edit_message(request, id, message_id):
     if not can_update(thread, message, request.user):
         return HttpResponse(status=403, content="Permissions missing to edit this message")
 
+    file = request.FILES.get('file')
     content = request.POST.get("content")
     if content is None or len(content) == 0:
         return HttpResponse(status=400, content="Missing content")
+
+    if file is not None:
+        for attach in MessageAttachment.objects.filter(message_id=message_id):
+            os.remove(attach.file.path)
+            attach.delete()
+        name = os.path.split(file.name)[1]
+        MessageAttachment.objects.create(name=name, file=file, message=message)
 
     message.content = content
     message.save()
@@ -659,7 +671,13 @@ def delete_message(request, id, message_id):
     if not can_update(thread, message, request.user):
         return HttpResponse(status=403, content="Permissions missing to delete this message")
 
+    for attach in message.attachments():
+        try:
+            os.remove(attach.file.path)
+        except:
+            pass
+        attach.delete()
+
     message.delete()
 
     return redirect(thread)
-
