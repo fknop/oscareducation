@@ -13,3 +13,4 @@ django-crispy-forms
 mechanize
 django-compressor
 channels
+selenium
