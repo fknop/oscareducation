@@ -291,11 +291,9 @@ def post_create_thread(request):
                                        created_date=utc.localize(datetime.now()),
                                        modified_date=utc.localize(datetime.now()))
             original_message.save()
-            print(params['file'])
-            if params['file'] is not None:
+            
+            if params['file']:
                 name = os.path.split(params['file'].name)[1]
-                print("###################################")
-                print(name)
                 MessageAttachment.objects.create(name=name, file=params['file'], message=original_message)
 
             sendNotification(getNotificationForNewMessage(original_message))
