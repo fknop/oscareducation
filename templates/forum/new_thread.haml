@@ -20,7 +20,7 @@
       Créer un nouveau Sujet
     .panel-body
 
-      %form{:action => '/forum/write/', :method => 'post'} {% csrf_token %}
+      %form{:action => '/forum/write/', :method => 'post', :enctype => 'multipart/form-data'} {% csrf_token %}
         %div
           %label{:for => 'title'} Titre
           - for err in errors
@@ -109,6 +109,8 @@
               {% endif %}
             %textarea.form-control#content{:rows => '8', :name => 'content'} #{data.content}
 
+          .pull-left
+            %input.upload{:type => "file", :name => 'file'}
           .pull-right
             %button.btn.btn-lg.pull-right.carot#validb{:type => 'submit', :value => 'Submit'} Valider
 
