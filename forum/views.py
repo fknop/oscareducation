@@ -291,6 +291,10 @@ def post_create_thread(request):
                                        created_date=utc.localize(datetime.now()),
                                        modified_date=utc.localize(datetime.now()))
             original_message.save()
+            
+            if params['file']:
+                name = os.path.split(params['file'].name)[1]
+                MessageAttachment.objects.create(name=name, file=params['file'], message=original_message)
 
             sendNotification(getNotificationForNewMessage(original_message))
 
@@ -379,11 +383,12 @@ class ThreadForm(forms.Form):
     title = forms.CharField()
     visibdata = forms.CharField()
     content = forms.CharField()
+    file = forms.FileField(required=False, label='file')
 
 
 def deepValidateAndFetch(request, errors):
     params = {}
-    form = ThreadForm(request.POST)
+    form = ThreadForm(request.POST, request.FILES)
 
     form.is_valid()
 
@@ -418,6 +423,11 @@ def deepValidateAndFetch(request, errors):
         params['content'] = ""
         errors.append({"field": "content", "msg": "Le premier message du sujet ne peut pas être vide"})
 
+    try:
+        params['file'] = form.cleaned_data['file']
+    except:
+        params['file'] = None
+    
     params['author'] = User.objects.get(pk=request.user.id)
 
     if params['visibility'] not in ["private", "class", "public"]:
