@@ -3,9 +3,15 @@ install:
   - pip install pyyaml
   - pip install -r requirements-oscar2.txt
   - pip install coveralls
+addons:
+  firefox: "45.4.0esr"
 python:
   - "2.7"
 before_script:
+  - wget https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz
+  - mkdir geckodriver
+  - tar -xzf geckodriver-v0.11.1-linux64.tar.gz -C geckodriver
+  - export PATH=$PATH:$PWD/geckodriver
   - psql -c "CREATE DATABASE oscar;" -U postgres
   - psql -c "CREATE USER oscar WITH PASSWORD 'oscar' CREATEDB;" -U postgres
   - python manage.py makemigrations
