@@ -33,4 +33,3 @@ pandas==0.20.3
 xlrd==1.1.0
 channels==1.1.8
 selenium==3.7.0
-
