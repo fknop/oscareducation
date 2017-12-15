@@ -16,6 +16,10 @@ def require_login(function):
 @require_POST
 @require_login
 def setNotificationAsSeen(request):
+    """
+    POST: allow to set the notifications in the body of the request as seen
+          by the user.
+    """
 
     try:
         raw_ids = json.loads(request.body)['notif_ids']
@@ -41,6 +45,11 @@ def setNotificationAsSeen(request):
 @require_GET
 @require_login
 def getLastNotifications(request):
+
+    """
+    GET: Allow the retrieve every notification (read and unread) that concerns
+         the user.
+    """
 
     notifications = []
     medium = request.GET.get('medium')
@@ -76,6 +85,11 @@ def getLastNotifications(request):
 
 def getNotificationQObjAudienceFor(user):
 
+    """
+    Allow to build a query object that retrieve the audiences that the user
+    is a part of.
+    """
+
     qObj = Q(audience__contains=("notification-user-%s" % user.id))
 
     for lesson in getClassesOfUser(user):
@@ -84,6 +98,10 @@ def getNotificationQObjAudienceFor(user):
     return qObj
 
 def inferServerGroup(user, notif):
+
+    """
+    Allow to get the server group for the notification.
+    """
 
     userServerGroup = ("notification-user-%s" % user.id)
     serverGroup = None
@@ -102,6 +120,11 @@ def inferServerGroup(user, notif):
     return serverGroup
 
 def getClassesOfUser(user):
+
+    """
+    Allow to get all the classes of the user (the ones it follows and also the
+    ones he teaches).
+    """
 
     userClasses = []
 

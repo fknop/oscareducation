@@ -12,23 +12,28 @@ NOTIF_MEDIUM = {
                  # Add other types for instance: "EMAIL": "email"
 }
 
-# @param notification structure:
-#
-# {
-#    "medium": notification_manager.NOTIF_MEDIUM,
-#
-#    "type": notif_types.NOTIF_TYPES,
-#
-#    // recipient of notif, depends on medium; per ex for WS, list of groups
-#    "audience": [...],
-#
-#    // data relatives to notification type, depends on notif type;
-#    // per ex for NEW_PRIVATE_FORUM_THREAD: { "thread": Thread }
-#    "params": {...},
-# }
-#
-# all fields are required.
 def sendNotification(notification):
+
+    """
+    Allow to send a new notification
+
+    @param notification structure:
+
+    {
+        "medium": notification_manager.NOTIF_MEDIUM,
+
+        "type": notif_types.NOTIF_TYPES,
+
+        // recipient of notif, depends on medium; per ex for WS, list of groups
+        "audience": [...],
+
+        // data relatives to notification type, depends on notif type;
+        // per ex for NEW_PRIVATE_FORUM_THREAD: { "thread": Thread }
+        "params": {...},
+     }
+
+    all fields are required.
+    """
 
     persistedNotif = persistNotif(notification)
 
@@ -36,6 +41,10 @@ def sendNotification(notification):
         sendWSNotif(notification)
 
 def persistNotif(notification):
+
+    """
+    Allow to persist the notification in the database.
+    """
 
     serializedAudience = " "
 

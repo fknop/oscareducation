@@ -74,7 +74,7 @@ $(document).ready(function(){
         }
     }
 
-    /* updateDOM() state variable */
+    /* updateDOMForNotifications() state variable */
     const notificationsContainer = $('<ul class="media-list"></ul>')
 
     function updateDOMForNotifications(notifs) {
