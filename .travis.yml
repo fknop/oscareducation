@@ -25,7 +25,7 @@ after_success:
 services:
   - postgresql
 addons:
-  postgresql: "10.1"
+  postgresql: "9.4"
   firefox: "45.4.0esr"
 notifications:
   email: false
