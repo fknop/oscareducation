@@ -6,6 +6,10 @@ install:
 python:
   - "2.7"
 before_script:
+  - wget https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz
+  - mkdir geckodriver
+  - tar -xzf geckodriver-v0.11.1-linux64.tar.gz -C geckodriver
+  - export PATH=$PATH:$PWD/geckodriver
   - psql -c "CREATE DATABASE oscar;" -U postgres
   - psql -c "CREATE USER oscar WITH PASSWORD 'oscar' CREATEDB;" -U postgres
   - python manage.py makemigrations
@@ -21,6 +25,7 @@ after_success:
 services:
   - postgresql
 addons:
-  postgresql: "9.4"
+  postgresql: "10.1"
+  firefox: "45.4.0esr"
 notifications:
   email: false
