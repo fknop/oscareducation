@@ -3,8 +3,6 @@ install:
   - pip install pyyaml
   - pip install -r requirements-oscar2.txt
   - pip install coveralls
-addons:
-  firefox: "45.4.0esr"
 python:
   - "2.7"
 before_script:
@@ -28,5 +26,6 @@ services:
   - postgresql
 addons:
   postgresql: "9.4"
+  firefox: "45.4.0esr"
 notifications:
   email: false
