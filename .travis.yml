@@ -10,12 +10,14 @@ before_script:
   - mkdir geckodriver
   - tar -xzf geckodriver-v0.11.1-linux64.tar.gz -C geckodriver
   - export PATH=$PATH:$PWD/geckodriver
+  - export DISPLAY=:99.0
   - psql -c "CREATE DATABASE oscar;" -U postgres
   - psql -c "CREATE USER oscar WITH PASSWORD 'oscar' CREATEDB;" -U postgres
   - python manage.py makemigrations
   - chmod +x makemigrations.sh
   - ./makemigrations.sh
   - python manage.py migrate
+  - sh -e /etc/init.d/xvfb start
 script:
   - python validate_exercices.py
   - python manage.py test
