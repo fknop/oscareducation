@@ -928,8 +928,18 @@ class TestMisc(TestCase):
                 'last_name': users[i].last_name
             })
 
+
 class TestResources(TestCase):
+    """
+    Test the links which should redirect to the thread creation page from the student's resources pages with prefilled
+    fields.
+    """
     def setUp(self):
+        """
+        Create a Section with a Resource and create a Skill with this Section.
+        Create another Skill with another Resource. Make a Stage with both Skills and
+        with one teacher and one student associated to it.
+        """
         self.user = User(username="Brandon")
         self.user.set_password('12345')
         self.user.save()
@@ -986,6 +996,9 @@ class TestResources(TestCase):
         self.t1.login(username=self.teacher_user.username, password='12345')
 
     def test_get_all_resources(self):
+        """
+        It should return all the resources linked to a student (by his Section or by his Skills).
+        """
         response = self.s1.get('/forum/write/resources/')
         json_data = json.loads(response.content)
         data = json_data["data"]
@@ -997,6 +1010,9 @@ class TestResources(TestCase):
         self.assertTrue(data[1]["id"] in correct_ids)
 
     def test_get_section_resources(self):
+        """
+        It should return only the resource linked to the selected section as the skill doesn't exist.
+        """
         response = self.s1.get('/forum/write/resources/?section={0}&skills[]={1}'.format(self.section.id, 0))
         json_data = json.loads(response.content)
         data = json_data["data"]
@@ -1006,6 +1022,9 @@ class TestResources(TestCase):
         self.assertEquals(data[0]["title"], self.res1.content['title'])
 
     def test_get_skills_resources(self):
+        """
+        It should return only the resource linked to the selected skill as the section doesn't exist.
+        """
         response = self.s1.get('/forum/write/resources/?skills[]={0}&section={1}'.format(self.skill3.id, 0))
         json_data = json.loads(response.content)
         data = json_data["data"]

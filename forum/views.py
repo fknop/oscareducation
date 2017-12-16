@@ -138,10 +138,21 @@ def get_lessons(request):
 @require_login
 @require_GET
 def get_resources(request):
+    """
+    Wraps the resources list as a JSON object.
+    :param request:
+    :return: A JSON object containing a list of resources {id, title}
+    """
     return JsonResponse({"data": get_resources_list(request)})
 
 
 def get_resources_list(request):
+    """
+    Returns a list of {id, title} of all the resources requested. All associated resources will be returned unless a
+    filtering is applied with query parameters on skills or section.
+    :param request:
+    :return: A list of dicts with keys {id, title} for each returned resource
+    """
     skills, sections = get_skills(request)
     selected_skills, selected_section = get_selected_skills_section(request)
     filtered_skills = [skill for skill in skills if skill.id in selected_skills] \
@@ -177,6 +188,14 @@ def get_resources_list(request):
 
 
 def get_selected_resource(request):
+    """
+    Based on a resource id specified in the query parameter 'resource', returns the ids of the associated skills,
+    sections and resource creator's id.
+    If there's no resource param in the request, returns the ids of the skills, sections and recipient's id selected in
+    the request params.
+    :param request:
+    :return: A tuple of resource id or '', list of skills ids, sections ids, recipient id
+    """
     selected_skills, selected_sections = get_selected_skills_section(request)
     selected_visibdata = get_selected_visibdata(request)
 
@@ -221,6 +240,11 @@ def get_skills(request):
 
 
 def get_selected_skills_section(request):
+    """
+    Returns a list of skills ids, sections ids based on the query parameters: skills[], section.
+    :param request:
+    :return: A tuple of skills ids, section ids (possibly empty lists)
+    """
     skills = request.GET.getlist('skills[]', [])
     section = request.GET.get('section', [])
     return [int(skill) for skill in skills if skill and skill.isdigit()], [int(section)] \
@@ -228,6 +252,11 @@ def get_selected_skills_section(request):
 
 
 def get_selected_visibdata(request):
+    """
+    Returns the id from the query parameter: visibdata.
+    :param request:
+    :return: An id or None
+    """
     res = request.GET.get('visibdata', None)
     if res:
         res = int(res) if res.isdigit() else None
@@ -235,6 +264,11 @@ def get_selected_visibdata(request):
 
 
 def get_selected_visibility(request):
+    """
+    Returns the selected visibility from the query parameter: visibility.
+    :param request:
+    :return: 'private' (default), 'class' or 'public'
+    """
     visibility = request.GET.get('visibility', 'private')
     if visibility not in ['private', 'class', 'public']:
         visibility = 'private'
@@ -242,6 +276,11 @@ def get_selected_visibility(request):
 
 
 def get_create_thread_page(request):
+    """
+    Renders the thread creation page with appropriate data based on different query parameters and validation errors.
+    :param request:
+    :return: The rendered template
+    """
     skills, sections = get_skills(request)
     resources = get_resources_list(request)
     selected_resource, selected_skills, selected_sections, selected_visibdata = get_selected_resource(request)
