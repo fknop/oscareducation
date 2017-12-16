@@ -20,7 +20,7 @@ before_script:
   - sh -e /etc/init.d/xvfb start
 script:
   - python validate_exercices.py
-  - python manage.py test
+  - python manage.py test forum
   - coverage run --source=forum manage.py test forum
 after_success:
   coveralls
