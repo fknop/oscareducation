@@ -154,12 +154,20 @@ def get_lessons(request):
 @require_GET
 def get_resources(request):
     """
-    Return all the resources
+    Wraps the resources list as a JSON object.
+    :param request:
+    :return: A JSON object containing a list of resources {id, title}
     """
     return JsonResponse({"data": get_resources_list(request)})
 
 
 def get_resources_list(request):
+    """
+    Returns a list of {id, title} of all the resources requested. All associated resources will be returned unless a
+    filtering is applied with query parameters on skills or section.
+    :param request:
+    :return: A list of dicts with keys {id, title} for each returned resource
+    """
     skills, sections = get_skills(request)
     selected_skills, selected_section = get_selected_skills_section(request)
     filtered_skills = [skill for skill in skills if skill.id in selected_skills] \
@@ -195,6 +203,14 @@ def get_resources_list(request):
 
 
 def get_selected_resource(request):
+    """
+    Based on a resource id specified in the query parameter 'resource', returns the ids of the associated skills,
+    sections and resource creator's id.
+    If there's no resource param in the request, returns the ids of the skills, sections and recipient's id selected in
+    the request params.
+    :param request:
+    :return: A tuple of resource id or '', list of skills ids, sections ids, recipient id
+    """
     selected_skills, selected_sections = get_selected_skills_section(request)
     selected_visibdata = get_selected_visibdata(request)
 
@@ -243,7 +259,9 @@ def get_skills(request):
 
 def get_selected_skills_section(request):
     """
-    Return all section related to the selected skill
+    Returns a list of skills ids, sections ids based on the query parameters: skills[], section.
+    :param request:
+    :return: A tuple of skills ids, section ids (possibly empty lists)
     """
     skills = request.GET.getlist('skills[]', [])
     section = request.GET.get('section', [])
@@ -252,6 +270,11 @@ def get_selected_skills_section(request):
 
 
 def get_selected_visibdata(request):
+    """
+    Returns the id from the query parameter: visibdata.
+    :param request:
+    :return: An id or None
+    """
     res = request.GET.get('visibdata', None)
     if res:
         res = int(res) if res.isdigit() else None
@@ -259,6 +282,11 @@ def get_selected_visibdata(request):
 
 
 def get_selected_visibility(request):
+    """
+    Returns the selected visibility from the query parameter: visibility.
+    :param request:
+    :return: 'private' (default), 'class' or 'public'
+    """
     visibility = request.GET.get('visibility', 'private')
     if visibility not in ['private', 'class', 'public']:
         visibility = 'private'
@@ -267,8 +295,10 @@ def get_selected_visibility(request):
 
 def get_create_thread_page(request):
     """
-    Return the creation page
+    Renders the thread creation page with appropriate data based on different query parameters and validation errors.
     You can change the parameters returned by the render to prefill fields
+    :param request:
+    :return: The rendered template
     """
     skills, sections = get_skills(request)
     resources = get_resources_list(request)
@@ -322,6 +352,10 @@ def post_create_thread(request):
                                        created_date=utc.localize(datetime.now()),
                                        modified_date=utc.localize(datetime.now()))
             original_message.save()
+            
+            if params['file']:
+                name = os.path.split(params['file'].name)[1]
+                MessageAttachment.objects.create(name=name, file=params['file'], message=original_message)
 
             sendNotification(getNotificationForNewMessage(original_message))
 
@@ -410,11 +444,12 @@ class ThreadForm(forms.Form):
     title = forms.CharField()
     visibdata = forms.CharField()
     content = forms.CharField()
+    file = forms.FileField(required=False, label='file')
 
 
 def deepValidateAndFetch(request, errors):
     params = {}
-    form = ThreadForm(request.POST)
+    form = ThreadForm(request.POST, request.FILES)
 
     form.is_valid()
 
@@ -449,6 +484,11 @@ def deepValidateAndFetch(request, errors):
         params['content'] = ""
         errors.append({"field": "content", "msg": "Le premier message du sujet ne peut pas être vide"})
 
+    try:
+        params['file'] = form.cleaned_data['file']
+    except:
+        params['file'] = None
+    
     params['author'] = User.objects.get(pk=request.user.id)
 
     if params['visibility'] not in ["private", "class", "public"]:
