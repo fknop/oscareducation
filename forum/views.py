@@ -42,12 +42,18 @@ class MessageReplyForm(forms.ModelForm):
 
 
 def require_login(function):
+    """
+    Annotation to check if the user is logged in before a view
+    """
     return login_required(function, login_url="/accounts/usernamelogin")
 
 
 @require_GET
 @require_login
 def forum_dashboard(request):
+    """
+    Return the dashboard page
+    """
     threads = get_thread_set(request.user)
     return render(request, "forum/dashboard.haml", {
         "user": request.user,
@@ -71,6 +77,9 @@ def create_thread(request):
 @require_GET
 @require_login
 def get_users(request):
+    """
+    Return all the users
+    """
     users = [
         {
             "id": user.id,
@@ -86,6 +95,9 @@ def get_users(request):
 @require_GET
 @require_login
 def get_professors(request):
+    """
+    Return all the professors related to the connected user
+    """
     lessons = None
     user = request.user
     professor = None
@@ -116,6 +128,9 @@ def get_professors(request):
 @require_login
 @require_GET
 def get_lessons(request):
+    """
+    Return all the lessons related to the connected user
+    """
     user = request.user
     if Student.objects.filter(user=user).exists():
         student = Student.objects.get(user=user)
@@ -138,6 +153,9 @@ def get_lessons(request):
 @require_login
 @require_GET
 def get_resources(request):
+    """
+    Return all the resources
+    """
     return JsonResponse({"data": get_resources_list(request)})
 
 
@@ -191,6 +209,9 @@ def get_selected_resource(request):
 
 
 def get_skills(request):
+    """
+    Return all skills related to the connected user
+    """
     user = request.user
     if Student.objects.filter(user=user).exists():
         student = Student.objects.get(user=user)
@@ -221,6 +242,9 @@ def get_skills(request):
 
 
 def get_selected_skills_section(request):
+    """
+    Return all section related to the selected skill
+    """
     skills = request.GET.getlist('skills[]', [])
     section = request.GET.get('section', [])
     return [int(skill) for skill in skills if skill and skill.isdigit()], [int(section)] \
@@ -242,6 +266,10 @@ def get_selected_visibility(request):
 
 
 def get_create_thread_page(request):
+    """
+    Return the creation page
+    You can change the parameters returned by the render to prefill fields
+    """
     skills, sections = get_skills(request)
     resources = get_resources_list(request)
     selected_resource, selected_skills, selected_sections, selected_visibdata = get_selected_resource(request)
@@ -262,6 +290,9 @@ def get_create_thread_page(request):
 
 
 def post_create_thread(request):
+    """
+    Create a new thread
+    """
     errors = []
     params = deepValidateAndFetch(request, errors)
 
@@ -496,6 +527,9 @@ def get_file(request):
 
 
 def get_thread(request, id):
+    """
+    Return the thread page given the thread id
+    """
     thread = get_object_or_404(Thread, pk=id)
     messages = thread.messages()
 
@@ -526,6 +560,9 @@ def get_thread(request, id):
 
 
 def reply_thread(request, id):
+    """
+    Reply to a thread
+    """
     thread = get_object_or_404(Thread, pk=id)
     message_id = request.GET.get('reply_to')
     form = MessageReplyForm(request.POST, request.FILES)  # POST contains data, FILEs contains attachment
@@ -559,6 +596,10 @@ def reply_thread(request, id):
 
 @require_login
 def write_mail(request):
+    """
+    GET: return the page to write an email
+    POST: Send an email
+    """
     if request.method == 'GET':
         message_id = request.GET.get('message')
         message = get_object_or_404(Message, pk=message_id)
@@ -613,6 +654,9 @@ def checkFields(request, errors):
 
 
 def can_update(thread, message, user):
+    """
+    Check if the user is allowed to update/delete the given message in the given thread
+    """
     if message.thread_id != thread.id:
         return False
 
@@ -641,6 +685,9 @@ def can_update(thread, message, user):
 @require_POST
 @require_login
 def edit_message(request, id, message_id):
+    """
+    Edit the message given by the thread id and the message id
+    """
     thread = get_object_or_404(Thread, pk=id)
 
     message = get_object_or_404(Message, pk=message_id)
@@ -669,6 +716,9 @@ def edit_message(request, id, message_id):
 @require_POST
 @require_login
 def delete_message(request, id, message_id):
+    """
+    Delete a message given the thread id and the message id
+    """
     thread = get_object_or_404(Thread, pk=id)
     message = get_object_or_404(Message, pk=message_id)
 
